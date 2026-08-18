@@ -21,13 +21,14 @@ interface MccSearchInputProps {
 }
 
 const QUICK_TAGS = [
-  { label: "🛡️ Bảo hiểm Nhân thọ (6300)", code: "6300" },
+  { label: "🛍️ Shopee/Lazada TMĐT (5262)", code: "5262", isOnline: true },
+  { label: "📱 Điện máy & Công nghệ (5732)", code: "5732" },
   { label: "🎓 Học phí Trường học (8211)", code: "8211" },
+  { label: "📚 Nhà sách Fahasa/Nhã Nam (5942)", code: "5942" },
   { label: "🏥 Bệnh viện / Viện phí (8062)", code: "8062" },
-  { label: "📢 Chạy Facebook/Google Ads (7311)", code: "7311", isOnline: true },
-  { label: "🍔 Ăn uống / Cafe (5812, 5814)", code: "5812" },
-  { label: "🛍️ Shopee / E-Commerce (5399)", code: "5399", isOnline: true },
-  { label: "🛒 Siêu thị WinMart (5411)", code: "5411" },
+  { label: "🛡️ Bảo hiểm Nhân thọ (6300)", code: "6300" },
+  { label: "📢 Facebook/Google Ads (7311)", code: "7311", isOnline: true },
+  { label: "🍔 Ăn uống / Cafe (5812)", code: "5812" },
   { label: "✈️ Vé máy bay / Khách sạn (4511)", code: "4511" },
   { label: "🚗 Grab / Spotify (Lưu thẻ)", code: "4121", isSavedCard: true },
 ];
@@ -98,7 +99,7 @@ export default function MccSearchInput({
       {/* Search Input Box */}
       <div className="relative" ref={dropdownRef}>
         <div className="relative flex items-center">
-          <div className="absolute left-4 pointer-events-none text-amber-400">
+          <div className="absolute left-4 pointer-events-none text-amber-400 z-10 flex items-center">
             <Search className="w-6 h-6" />
           </div>
           <input
@@ -110,7 +111,7 @@ export default function MccSearchInput({
             }}
             onFocus={() => setIsOpen(true)}
             placeholder="Nhập mã MCC (6300, 8211, 7311, 5812...) hoặc tên ngành (Bảo hiểm, Học phí, Chạy Ads, Grab...)"
-            className="w-full pl-13 pr-12 py-4 rounded-2xl bg-slate-900/90 border-2 border-amber-500/40 focus:border-amber-400 text-white placeholder-slate-400 text-base shadow-xl backdrop-blur-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 transition-all font-medium"
+            className="w-full pl-14 pr-12 py-4 rounded-2xl bg-slate-900/90 border-2 border-amber-500/40 focus:border-amber-400 text-white placeholder-slate-400 text-base shadow-xl backdrop-blur-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 transition-all font-medium"
           />
           {query && (
             <button
@@ -118,7 +119,7 @@ export default function MccSearchInput({
                 setQuery("");
                 setIsOpen(false);
               }}
-              className="absolute right-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10"
+              className="absolute right-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 z-10"
             >
               <X className="w-5 h-5" />
             </button>

@@ -46,7 +46,7 @@ export default function HomePage() {
           </span>
         </h1>
         <p className="text-slate-300 text-sm sm:text-base font-normal max-w-2xl mx-auto">
-          Tự động tính toán tỷ lệ hoàn tiền chính xác theo từng bậc chi tiêu kỳ liền trước của thẻ VIB Family Link, VIB Cash Back, VIB Super Card (tối đa 500k/danh mục) & VIB Online Plus 2in1.
+          Tự động tính toán tỷ lệ hoàn tiền/tích điểm chính xác cho VIB Super Card (15%), Shinhan Supreme (12%), VIB Family Link, VIB Cash Back & VIB Online Plus 2in1.
         </p>
       </div>
 

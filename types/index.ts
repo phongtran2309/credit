@@ -53,6 +53,9 @@ export interface CreditCard {
   rules: CashbackRule[];
   defaultCashbackRate: number;
   hasPreviousCycleTier?: boolean; // true nếu tỷ lệ hoàn phụ thuộc vào kỳ liền trước (Family Link, Cash Back)
+  optimalMonthlySpend?: number; // Mức chi tiêu tối ưu / kỳ sao kê (VD: 16.000.000đ cho Cash Back, 20.000.000đ cho Family Link)
+  optimalSpendNote?: string; // Ghi chú chiến lược điểm ngọt chi tiêu
+  categoryOptimalSpend?: { [category: string]: number }; // Mức chi tiêu tối ưu theo danh mục (VD: Giáo dục 10tr, Y tế 10tr)
 }
 
 export interface Transaction {
@@ -89,8 +92,21 @@ export interface CardSpendingSummary {
   maxCashbackPerCategory?: number;
   cashbackPercentage: number;
   isCapReached: boolean;
+  optimalSpentTarget: number; // Mốc chi tiêu tối ưu mục tiêu (VD: 16tr hoặc 20tr)
+  isOptimalSpendReached: boolean; // Đã đạt mốc chi tiêu tối ưu chưa
+  spendProgressPercentage: number; // Tiến độ % chi tiêu so với mốc tối ưu
   transactions: Transaction[];
-  categoryBreakdown: { [category: string]: { spent: number; cashback: number; isCapReached?: boolean } };
+  categoryBreakdown: {
+    [category: string]: {
+      spent: number;
+      cashback: number;
+      isCapReached?: boolean;
+      maxCategoryCashback?: number;
+      optimalCategorySpend?: number;
+      isOptimalCategorySpendReached?: boolean;
+      categorySpendProgressPercentage?: number;
+    };
+  };
 }
 
 export interface CardRecommendationResult {

@@ -126,15 +126,29 @@ export function deleteTransaction(id: string): Transaction[] {
   return updated;
 }
 
+export const CURRENT_DATA_VERSION = "v2.3_shinhan_supreme_added";
+
 export function getStoredCards(): CreditCard[] {
   if (typeof window === "undefined") return DEFAULT_CARDS;
   try {
+    const storedVersion = localStorage.getItem("mcc_data_version");
+    // If version changed or cache is outdated, auto-refresh with latest DEFAULT_CARDS
+    if (storedVersion !== CURRENT_DATA_VERSION) {
+      localStorage.setItem("mcc_data_version", CURRENT_DATA_VERSION);
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(DEFAULT_CARDS));
+      return DEFAULT_CARDS;
+    }
+
     const raw = localStorage.getItem(STORAGE_KEYS.CUSTOM_CARDS);
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(DEFAULT_CARDS));
       return DEFAULT_CARDS;
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return DEFAULT_CARDS;
+    }
+    return parsed;
   } catch (e) {
     console.error("Lỗi đọc cards từ localStorage:", e);
     return DEFAULT_CARDS;
@@ -152,6 +166,7 @@ export function saveCards(cards: CreditCard[]): void {
 
 export function resetToDefaults(): void {
   if (typeof window === "undefined") return;
+  localStorage.setItem("mcc_data_version", CURRENT_DATA_VERSION);
   localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(INITIAL_TRANSACTIONS));
   localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(DEFAULT_CARDS));
 }

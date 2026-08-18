@@ -161,6 +161,12 @@ export default function CardRecommendation({
                       <span>Hạn mức tối đa danh mục: {formatCurrencyVND(res.maxCategoryCap)}/kỳ</span>
                     </div>
                   )}
+                  {res.card.optimalSpendNote && (
+                    <div className="text-[11px] text-emerald-300/90 flex items-start gap-1 font-medium">
+                      <Zap className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{res.card.optimalSpendNote}</span>
+                    </div>
+                  )}
                   {res.rule.note && (
                     <p className="text-[11px] text-slate-400 pt-1 border-t border-white/5 flex items-start gap-1">
                       <Info className="w-3.5 h-3.5 text-amber-400/80 shrink-0 mt-0.5" />

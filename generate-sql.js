@@ -103,17 +103,21 @@ CREATE TABLE IF NOT EXISTS transactions (
 );
 
 -- ====================================================================
--- SEED DATA: DỮ LIỆU CÁC DÒNG THẺ VIB & VPBANK
+-- SEED DATA: DỮ LIỆU CÁC DÒNG THẺ VIB (NGÀY CHỐT 27 - HẠN TT 21)
 -- ====================================================================
 
 INSERT INTO cards (id, name, bank, statement_day, due_day, max_cashback_per_month, max_cashback_per_category, default_cashback_rate) VALUES
-('vib-super-card', 'VIB Super Card', 'VIB', 20, 5, 1000000, 500000, 0.1),
-('vib-family-link', 'VIB Family Link', 'VIB', 20, 5, 1000000, 500000, 0.1),
-('vib-online-plus-2in1', 'VIB Online Plus 2in1', 'VIB', 20, 5, 600000, NULL, 0.1),
-('vib-cash-back', 'VIB Cash Back', 'VIB', 20, 5, 2000000, NULL, 0.1),
-('vib-max-card', 'VIB Max Card', 'VIB', 20, 5, 1000000, NULL, 0.1),
-('vpbank-stepup', 'VPBank StepUp', 'VPBank', 25, 10, 600000, NULL, 0.1)
-ON CONFLICT (id) DO NOTHING;
+('vib-super-card', 'VIB Super Card', 'VIB', 27, 21, 1000000, 500000, 0.1),
+('vib-family-link', 'VIB Family Link', 'VIB', 27, 21, 1000000, 500000, 0.1),
+('vib-online-plus-2in1', 'VIB Online Plus 2in1', 'VIB', 27, 21, 600000, NULL, 0.1),
+('vib-cash-back', 'VIB Cash Back', 'VIB', 27, 21, 2000000, NULL, 0.1),
+('vib-max-card', 'VIB Max Card', 'VIB', 27, 21, 1500000, 1500000, 0.1),
+('shinhan-supreme', 'Shinhan Supreme', 'Shinhan Bank', 20, 6, 1000000, 1000000, 0.1)
+ON CONFLICT (id) DO UPDATE SET
+    statement_day = EXCLUDED.statement_day,
+    due_day = EXCLUDED.due_day,
+    max_cashback_per_month = EXCLUDED.max_cashback_per_month,
+    max_cashback_per_category = EXCLUDED.max_cashback_per_category;
 
 -- ====================================================================
 -- SEED DATA: CHÈN TOÀN BỘ ${mccMap.size} MÃ MCC TỪ VIB-CARD.JSON
@@ -177,11 +181,21 @@ INSERT INTO cashback_rules (card_id, category_name, cashback_rate, max_cashback_
 ('vib-online-plus-2in1', 'Giao dịch chi tiêu trực tuyến còn lại', 3.0, 600000, 'Ưu đãi 1: Hoàn 3% chi tiêu trực tuyến nội địa (Max 600k/kỳ)'),
 ('vib-online-plus-2in1', 'Giao dịch có lưu thông tin Thẻ', 5.0, 100000, 'Ưu đãi 2: Hoàn 50.000đ / giao dịch lưu thẻ Grab, Netflix, Tiki, Agoda, Spotify... (Max 100k/kỳ, 300k/KH)'),
 
--- VIB Max Card (10% các ngành hàng, max 1tr/kỳ)
-('vib-max-card', 'Mua sắm', 10.0, NULL, 'Hoàn 10% hệ thống bán lẻ và TTTM'),
-('vib-max-card', 'Du lịch', 10.0, NULL, 'Hoàn 10% Hàng không và khách sạn toàn cầu'),
-('vib-max-card', 'Ẩm thực', 10.0, NULL, 'Hoàn 10% Ẩm thực, Nhà hàng, Quán ăn'),
-('vib-max-card', 'Giải trí', 10.0, NULL, 'Hoàn 10% Giải trí số, Rạp phim, Gym');
+-- VIB Max Card (10% các ngành hàng, max 1.5tr/kỳ)
+('vib-max-card', 'Mua sắm', 10.0, 1500000, 'Hoàn 10% hệ thống bán lẻ và TTTM (tối đa 1.500.000đ/kỳ)'),
+('vib-max-card', 'Du lịch', 10.0, 1500000, 'Hoàn 10% Hàng không và khách sạn toàn cầu (tối đa 1.500.000đ/kỳ)'),
+('vib-max-card', 'Ẩm thực', 10.0, 1500000, 'Hoàn 10% Ẩm thực, Nhà hàng, Quán ăn (tối đa 1.500.000đ/kỳ)'),
+('vib-max-card', 'Giải trí', 10.0, 1500000, 'Hoàn 10% Giải trí số, Rạp phim, Gym (tối đa 1.500.000đ/kỳ)'),
+('vib-max-card', 'Giao dịch trực tuyến', 10.0, 1500000, 'Hoàn 10% chi tiêu trực tuyến (tối đa 1.500.000đ/kỳ)'),
+
+-- Shinhan Supreme (Tích 12% TMĐT/Điện máy/Học phí/Nhà sách; Tích 6% Bệnh viện/Bảo hiểm; Max 1tr/kỳ khi chi tiêu ≥ 15tr)
+('shinhan-supreme', 'Thương mại điện tử', 12.0, 1000000, 'Tích 12% cho sàn Thương mại điện tử (MCC 5262, 5399: Shopee, Lazada, Tiki, TikTok Shop...)'),
+('shinhan-supreme', 'Điện máy', 12.0, 1000000, 'Tích 12% Cửa hàng Điện máy & Thiết bị gia dụng (MCC 5732, 5722: ĐMX, FPT Shop, TGDD, Nguyễn Kim...)'),
+('shinhan-supreme', 'Giáo dục', 12.0, 1000000, 'Tích 12% Học phí, Trường học các cấp, Đại học & Trung tâm đào tạo (MCC 8211, 8220, 8241, 8244, 8249, 8299)'),
+('shinhan-supreme', 'Nhà sách', 12.0, 1000000, 'Tích 12% Nhà sách, Sách báo & Tạp chí (MCC 5942, 5192: Fahasa, Nhã Nam, Phương Nam...)'),
+('shinhan-supreme', 'Bệnh viện', 6.0, 1000000, 'Tích 6% Bệnh viện, Phòng khám, Dịch vụ y tế & Dịch vụ công (MCC 8011, 8062, 8099, 9399)'),
+('shinhan-supreme', 'Bảo hiểm', 6.0, 1000000, 'Tích 6% Phí bảo hiểm nhân thọ, phi nhân thọ & Trực tuyến (MCC 5960, 6300, 6381, 6399)');
+
 `;
 
 fs.writeFileSync(path.join(__dirname, 'supabase-schema.sql'), sql, 'utf8');

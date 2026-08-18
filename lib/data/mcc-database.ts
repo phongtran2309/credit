@@ -184,16 +184,44 @@ export const MCC_DICTIONARY: Record<string, Partial<MccItem>> = {
   },
   "5732": {
     name: "Cửa hàng thiết bị điện tử & Công nghệ (Electronics)",
-    category: "Mua sắm",
+    category: "Điện máy",
     description: "Điện thoại, máy tính bảng, laptop, thiết bị công nghệ",
     popularBrands: ["Thế Giới Di Động", "FPT Shop", "CellphoneS", "Điện Máy Xanh", "Nguyễn Kim", "TopZone", "Di Động Việt", "GearVN"],
     isOnlineEligible: true
   },
+  "5722": {
+    name: "Cửa hàng điện máy & Thiết bị gia dụng (Household Appliance Store)",
+    category: "Điện máy",
+    description: "Tủ lạnh, máy giặt, máy lạnh, tivi, thiết bị gia dụng nhà bếp",
+    popularBrands: ["Điện Máy Xanh", "Siêu thị Điện Máy Chợ Lớn", "MediaMart", "Nguyễn Kim", "Pico", "HC Home Center"],
+    isOnlineEligible: true
+  },
+  "5262": {
+    name: "Sàn thương mại điện tử & Chợ trực tuyến (Online Marketplaces)",
+    category: "Thương mại điện tử",
+    description: "Sàn giao dịch thương mại điện tử trực tuyến đa ngành hàng",
+    popularBrands: ["Shopee", "Lazada", "Tiki", "TikTok Shop", "Sendo", "Amazon", "Taobao"],
+    isOnlineEligible: true
+  },
   "5399": {
     name: "Sàn thương mại điện tử tổng hợp (E-Commerce)",
-    category: "Mua sắm",
+    category: "Thương mại điện tử",
     description: "Mua sắm trực tuyến đa ngành hàng qua ứng dụng hoặc website",
     popularBrands: ["Shopee", "Lazada", "Tiki", "TikTok Shop", "Sendo", "Amazon"],
+    isOnlineEligible: true
+  },
+  "5942": {
+    name: "Nhà sách & Hiệu sách (Bookstores)",
+    category: "Nhà sách",
+    description: "Sách giáo khoa, sách văn học, tiểu thuyết, truyện tranh, văn phòng phẩm",
+    popularBrands: ["Nhà sách Fahasa", "Nhà sách Phương Nam", "Nhà sách Tiền Phong", "Nhã Nam Book & Coffee", "Cá Chép Bookstore", "Kim Đồng Bookstore"],
+    isOnlineEligible: true
+  },
+  "5192": {
+    name: "Nhà xuất bản, Sách báo & Tạp chí (Books & Newspapers)",
+    category: "Nhà sách",
+    description: "Đại lý bán buôn/lẻ sách báo, ấn phẩm định kỳ, tạp chí chuyên ngành",
+    popularBrands: ["NXB Trẻ", "NXB Kim Đồng", "NXB Phụ Nữ", "Báo Tuổi Trẻ", "Báo Thanh Niên", "Văn hóa Sài Gòn"],
     isOnlineEligible: true
   },
 
@@ -279,6 +307,27 @@ export const MCC_DICTIONARY: Record<string, Partial<MccItem>> = {
     popularBrands: ["RMIT University", "VinUniversity", "Đại học FPT", "BUV (British University)", "Đại học Bách Khoa", "Đại học Kinh Tế"],
     isOnlineEligible: true
   },
+  "8241": {
+    name: "Trường đào tạo từ xa & Trực tuyến (Correspondence Schools)",
+    category: "Giáo dục",
+    description: "Khóa học trực tuyến, đào tạo từ xa, chứng chỉ e-learning",
+    popularBrands: ["Coursera Plus", "Udemy", "edX", "Skillshare", "FUNiX"],
+    isOnlineEligible: true
+  },
+  "8244": {
+    name: "Trường đào tạo kinh doanh & Thư ký (Business / Secretarial Schools)",
+    category: "Giáo dục",
+    description: "Viện đào tạo kinh doanh, kế toán, quản trị doanh nghiệp",
+    popularBrands: ["PACE Institute of Management", "FBS Business School", "Viện Quản Trị PTI"],
+    isOnlineEligible: true
+  },
+  "8249": {
+    name: "Trường dạy nghề & Đào tạo kỹ thuật (Trade & Vocational Schools)",
+    category: "Giáo dục",
+    description: "Trường đào tạo nghề, trung cấp nghề, chứng chỉ kỹ thuật chuyên môn",
+    popularBrands: ["Trường Cao đẳng Nghề", "Saigontourist Hospitality College", "Hoa Sen College"],
+    isOnlineEligible: true
+  },
   "8299": {
     name: "Trung tâm đào tạo ngoại ngữ, kỹ năng & Trường nghề",
     category: "Giáo dục",
@@ -316,6 +365,20 @@ export const MCC_DICTIONARY: Record<string, Partial<MccItem>> = {
     popularBrands: ["Nha khoa Kim", "Nha khoa Paris", "Peace Dentistry", "Nha khoa Trồng Răng Sài Gòn"],
     isOnlineEligible: true
   },
+  "8099": {
+    name: "Dịch vụ y tế & Chăm sóc sức khỏe (Medical Services & Practitioners)",
+    category: "Y tế",
+    description: "Dịch vụ y tế tại nhà, xét nghiệm, vật lý trị liệu, chăm sóc sức khỏe",
+    popularBrands: ["Medlatec", "Diag", "Bernadette Clinic", "Phòng khám Đa khoa"],
+    isOnlineEligible: true
+  },
+  "9399": {
+    name: "Dịch vụ công & Bệnh viện công lập (Government Services & Public Hospitals)",
+    category: "Y tế",
+    description: "Thanh toán viện phí bệnh viện công lập, cổng dịch vụ công quốc gia",
+    popularBrands: ["Cổng Dịch vụ công Quốc gia", "Bệnh viện Bạch Mai", "Bệnh viện Việt Đức", "Bệnh viện Chợ Rẫy", "Bệnh viện K"],
+    isOnlineEligible: true
+  },
 
   // Bảo hiểm (Insurance)
   "6300": {
@@ -323,6 +386,27 @@ export const MCC_DICTIONARY: Record<string, Partial<MccItem>> = {
     category: "Bảo hiểm",
     description: "Đóng phí bảo hiểm định kỳ (nhân thọ, sức khỏe, xe cơ giới, du lịch)",
     popularBrands: ["Manulife", "Prudential", "Dai-ichi Life", "Bảo Việt Nhân Thọ", "FWD", "Chubb Life", "AIA", "Generali", "PVI", "BIC", "VBI (VietinBank Insurance)"],
+    isOnlineEligible: true
+  },
+  "5960": {
+    name: "Bán lẻ bảo hiểm trực tiếp & Qua kênh số (Direct Marketing Insurance)",
+    category: "Bảo hiểm",
+    description: "Mua bảo hiểm trực tuyến, bảo hiểm du lịch, bảo hiểm xe máy/ô tô qua app",
+    popularBrands: ["Bảo hiểm Bảo Việt Online", "VBI App", "OPES Insurance", "Liberty Insurance Direct", "Saladin", "Inshur"],
+    isOnlineEligible: true
+  },
+  "6381": {
+    name: "Phí bảo hiểm định kỳ & Tái tục (Insurance Premiums)",
+    category: "Bảo hiểm",
+    description: "Thanh toán phí bảo hiểm định kỳ, phí duy trì hợp đồng bảo hiểm",
+    popularBrands: ["Prudential Online", "Manulife ManuConnect", "Dai-ichi Connect", "AIA iService"],
+    isOnlineEligible: true
+  },
+  "6399": {
+    name: "Dịch vụ đại lý & Phí bảo hiểm tổng hợp (Insurance - Default)",
+    category: "Bảo hiểm",
+    description: "Các sản phẩm và dịch vụ bảo hiểm liên kết đối tác",
+    popularBrands: ["Đại lý Bảo hiểm", "Môi giới Bảo hiểm"],
     isOnlineEligible: true
   },
 

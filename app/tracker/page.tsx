@@ -10,9 +10,7 @@ import { calculateStatementCycle, isDateInCycle, formatCurrencyVND } from "@/lib
 import { Transaction, CreditCard, CardSpendingSummary } from "@/types";
 import StatementProgress from "@/components/StatementProgress";
 import SpendingChart from "@/components/SpendingChart";
-import TransactionModal from "@/components/TransactionModal";
 import {
-  PlusCircle,
   Trash2,
   Filter,
   PieChart as ChartIcon,
@@ -27,7 +25,6 @@ export default function TrackerPage() {
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedCardFilter, setSelectedCardFilter] = useState<string>("all");
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const loadData = () => {
     setCards(getStoredCards());
@@ -56,15 +53,40 @@ export default function TrackerPage() {
       const isCapReached = totalCashback >= maxCashback;
       const cashbackPercentage = maxCashback > 0 ? (totalCashback / maxCashback) * 100 : 0;
 
+      // Optimal Spend Target (Default fallback to 16tr for Cash Back, 20tr for Family Link if defined, or calculated)
+      const optimalSpentTarget = card.optimalMonthlySpend || (card.maxCashbackPerMonth / (card.defaultCashbackRate / 100));
+      const isOptimalSpendReached = totalSpent >= optimalSpentTarget || isCapReached;
+      const spendProgressPercentage = Math.min(100, Math.round((totalSpent / optimalSpentTarget) * 100));
+
       // Category breakdown
-      const categoryBreakdown: { [category: string]: { spent: number; cashback: number } } = {};
+      const categoryBreakdown: CardSpendingSummary["categoryBreakdown"] = {};
       for (const tx of cycleTransactions) {
         const cat = tx.mccName || `Mã ${tx.mccCode}`;
         if (!categoryBreakdown[cat]) {
-          categoryBreakdown[cat] = { spent: 0, cashback: 0 };
+          const optCatSpend = card.categoryOptimalSpend?.[cat] || (card.maxCashbackPerCategory ? (card.maxCashbackPerCategory / 0.05) : undefined);
+          categoryBreakdown[cat] = {
+            spent: 0,
+            cashback: 0,
+            maxCategoryCashback: card.maxCashbackPerCategory,
+            optimalCategorySpend: optCatSpend,
+          };
         }
         categoryBreakdown[cat].spent += tx.amount;
         categoryBreakdown[cat].cashback += tx.cashbackAmount;
+      }
+
+      // Check cap and optimal spend status per category
+      for (const cat in categoryBreakdown) {
+        const item = categoryBreakdown[cat];
+        if (item.maxCategoryCashback && item.cashback >= item.maxCategoryCashback) {
+          item.isCapReached = true;
+        }
+        if (item.optimalCategorySpend && item.spent >= item.optimalCategorySpend) {
+          item.isOptimalCategorySpendReached = true;
+        }
+        if (item.optimalCategorySpend && item.optimalCategorySpend > 0) {
+          item.categorySpendProgressPercentage = Math.min(100, Math.round((item.spent / item.optimalCategorySpend) * 100));
+        }
       }
 
       return {
@@ -73,8 +95,12 @@ export default function TrackerPage() {
         totalSpent,
         totalCashback,
         maxCashback,
+        maxCashbackPerCategory: card.maxCashbackPerCategory,
         cashbackPercentage,
         isCapReached,
+        optimalSpentTarget,
+        isOptimalSpendReached,
+        spendProgressPercentage,
         transactions: cycleTransactions,
         categoryBreakdown,
       };
@@ -129,26 +155,14 @@ export default function TrackerPage() {
   return (
     <div className="space-y-8">
       {/* Top Banner & Quick Metrics */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/20 mb-2">
-            <ChartIcon className="w-3.5 h-3.5" /> Quản lý Tiến độ Kỳ sao kê & Hoàn tiền
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-black text-white">Sổ tay Chi tiêu & Kỳ sao kê</h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Theo dõi chi tiêu theo chu kỳ ngày chốt của từng thẻ, đảm bảo tối đa hóa mức hoàn tiền không vượt trần.
-          </p>
+      <div className="border-b border-white/10 pb-6">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/20 mb-2">
+          <ChartIcon className="w-3.5 h-3.5" /> Quản lý Tiến độ Kỳ sao kê & Hoàn tiền
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
-          >
-            <PlusCircle className="w-4 h-4" />
-            Ghi nhận chi tiêu mới
-          </button>
-        </div>
+        <h1 className="text-2xl sm:text-4xl font-black text-white">Sổ tay Chi tiêu & Kỳ sao kê</h1>
+        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          Theo dõi chi tiêu theo chu kỳ ngày chốt 27 của từng thẻ VIB, đảm bảo tối đa hóa mức hoàn tiền không vượt trần.
+        </p>
       </div>
 
       {/* Overview Metric Cards */}
@@ -303,18 +317,6 @@ export default function TrackerPage() {
           )}
         </div>
       </div>
-
-      {/* Transaction Modal */}
-      {isModalOpen && (
-        <TransactionModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSuccess={() => {
-            setIsModalOpen(false);
-            loadData();
-          }}
-        />
-      )}
     </div>
   );
 }

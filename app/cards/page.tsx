@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getStoredCards } from "@/lib/storage";
 import { CreditCard } from "@/types";
 import CreditCardVisual from "@/components/CreditCardVisual";
@@ -20,9 +20,17 @@ import {
 import TransactionModal from "@/components/TransactionModal";
 
 export default function CardsPage() {
-  const cards = getStoredCards();
-  const [expandedCardId, setExpandedCardId] = useState<string | null>(cards[0]?.id || null);
+  const [cards, setCards] = useState<CreditCard[]>([]);
+  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [activeTxCard, setActiveTxCard] = useState<CreditCard | null>(null);
+
+  useEffect(() => {
+    const loaded = getStoredCards();
+    setCards(loaded);
+    if (loaded.length > 0) {
+      setExpandedCardId(loaded[0].id);
+    }
+  }, []);
 
   const toggleExpand = (id: string) => {
     setExpandedCardId(expandedCardId === id ? null : id);
@@ -37,7 +45,7 @@ export default function CardsPage() {
         </div>
         <h1 className="text-2xl sm:text-4xl font-black text-white">Chính sách & Danh mục MCC</h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Dữ liệu chi tiết về tỷ lệ hoàn tiền theo từng bậc chi tiêu kỳ trước, điều kiện hạn mức danh mục 500k và danh sách mã MCC áp dụng cho từng dòng thẻ VIB.
+          Dữ liệu chi tiết về tỷ lệ hoàn tiền/tích điểm, hạn mức kỳ & danh mục, mốc chi tiêu tối ưu và danh sách mã MCC áp dụng cho từng dòng thẻ (VIB, Shinhan Bank...).
         </p>
       </div>
 

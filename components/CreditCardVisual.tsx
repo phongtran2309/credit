@@ -26,7 +26,7 @@ export default function CreditCardVisual({ card, compact = false }: CreditCardVi
             {card.bank}
           </span>
           <span className="text-[10px] px-2 py-0.5 rounded bg-white/15 text-white font-medium backdrop-blur-sm border border-white/20">
-            {card.name.replace("VIB ", "").replace("VPBank ", "")}
+            {card.name.replace(/^(VIB|VPBank|Shinhan Bank|Shinhan)\s+/i, "")}
           </span>
         </div>
         <Wifi className="w-5 h-5 text-white/80 rotate-90" />
@@ -58,11 +58,17 @@ export default function CreditCardVisual({ card, compact = false }: CreditCardVi
           </div>
         </div>
 
-        {/* Mastercard Dual Circle Logo */}
-        <div className="flex items-center -space-x-2">
-          <div className="w-6 h-6 rounded-full bg-red-500/90 shadow-md" />
-          <div className="w-6 h-6 rounded-full bg-amber-400/90 shadow-md" />
-        </div>
+        {/* Card Network Logo (VISA or Mastercard) */}
+        {card.cardType.toLowerCase().includes("visa") ? (
+          <div className="px-2 py-0.5 rounded bg-white/15 border border-white/20 backdrop-blur-sm">
+            <span className="text-base font-black italic tracking-widest text-white drop-shadow">VISA</span>
+          </div>
+        ) : (
+          <div className="flex items-center -space-x-2">
+            <div className="w-6 h-6 rounded-full bg-red-500/90 shadow-md" />
+            <div className="w-6 h-6 rounded-full bg-amber-400/90 shadow-md" />
+          </div>
+        )}
       </div>
     </div>
   );
