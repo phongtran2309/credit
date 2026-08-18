@@ -1,0 +1,69 @@
+"use client";
+
+import { CreditCard } from "@/types";
+import { Wifi, Sparkles } from "lucide-react";
+
+interface CreditCardVisualProps {
+  card: CreditCard;
+  compact?: boolean;
+}
+
+export default function CreditCardVisual({ card, compact = false }: CreditCardVisualProps) {
+  return (
+    <div
+      className={`card-shine rounded-2xl p-5 relative overflow-hidden bg-gradient-to-br ${card.colorGradient.from} ${card.colorGradient.to} border ${card.colorGradient.border} shadow-2xl transition-all hover:scale-[1.02] duration-300 ${
+        compact ? "w-full aspect-[1.58/1]" : "w-full max-w-sm aspect-[1.58/1]"
+      } flex flex-col justify-between select-none`}
+    >
+      {/* Background glowing orb */}
+      <div className="absolute -top-12 -right-12 w-36 h-36 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-amber-500/10 blur-xl pointer-events-none" />
+
+      {/* Card Header: Bank Name & Contactless */}
+      <div className="flex items-center justify-between z-10">
+        <div className="flex items-center gap-2">
+          <span className="font-extrabold tracking-wider text-xl text-white drop-shadow-md">
+            {card.bank}
+          </span>
+          <span className="text-[10px] px-2 py-0.5 rounded bg-white/15 text-white font-medium backdrop-blur-sm border border-white/20">
+            {card.name.replace("VIB ", "").replace("VPBank ", "")}
+          </span>
+        </div>
+        <Wifi className="w-5 h-5 text-white/80 rotate-90" />
+      </div>
+
+      {/* Card EMV Chip & Hologram */}
+      <div className="flex items-center gap-4 my-auto z-10">
+        {/* EMV Chip */}
+        <div className="w-11 h-8 rounded-md bg-gradient-to-tr from-amber-200 via-amber-400 to-yellow-100 border border-amber-500/60 p-1 flex flex-col justify-between shadow-inner">
+          <div className="w-full h-px bg-amber-700/40" />
+          <div className="w-full h-px bg-amber-700/40" />
+        </div>
+
+        {/* Small badge */}
+        <div className="text-[11px] font-semibold text-white/80 flex items-center gap-1">
+          <Sparkles className="w-3 h-3 text-amber-300" />
+          <span>Hoàn tối đa {card.maxCashbackPerMonth ? (card.maxCashbackPerMonth / 1000).toLocaleString() + "k" : "1Tr"}/kỳ</span>
+        </div>
+      </div>
+
+      {/* Card Footer: Cardholder & Network Logo */}
+      <div className="flex items-end justify-between z-10">
+        <div>
+          <div className="text-[9px] text-white/60 tracking-wider uppercase font-semibold">
+            Chốt sao kê ngày {card.statementDay}
+          </div>
+          <div className={`font-semibold tracking-wide ${card.colorGradient.text} text-sm drop-shadow`}>
+            {card.name}
+          </div>
+        </div>
+
+        {/* Mastercard Dual Circle Logo */}
+        <div className="flex items-center -space-x-2">
+          <div className="w-6 h-6 rounded-full bg-red-500/90 shadow-md" />
+          <div className="w-6 h-6 rounded-full bg-amber-400/90 shadow-md" />
+        </div>
+      </div>
+    </div>
+  );
+}
