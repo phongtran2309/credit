@@ -6,7 +6,7 @@ import { searchMccCodes } from "@/lib/data/mcc-database";
 import { MccItem, PreviousSpendTier } from "@/types";
 
 interface MccSearchInputProps {
-  onSelectMcc: (mcc: MccItem) => void;
+  onSelectMcc: (mcc: MccItem | null) => void;
   selectedMcc: MccItem | null;
   isOnline: boolean;
   setIsOnline: (val: boolean) => void;
@@ -117,9 +117,11 @@ export default function MccSearchInput({
             <button
               onClick={() => {
                 setQuery("");
+                onSelectMcc(null);
                 setIsOpen(false);
               }}
               className="absolute right-4 text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10 z-10"
+              title="Xóa mã MCC"
             >
               <X className="w-5 h-5" />
             </button>

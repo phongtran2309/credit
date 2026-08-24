@@ -14,8 +14,8 @@ export default function HomePage() {
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  // Default to popular MCC: 6300 (Bảo hiểm) hoặc 5812 (Ẩm thực)
-  const [selectedMcc, setSelectedMcc] = useState<MccItem>(
+  // Default to popular MCC: 6300 (Bảo hiểm) hoặc null khi tìm kiếm theo tính năng
+  const [selectedMcc, setSelectedMcc] = useState<MccItem | null>(
     getMccByCode("6300") || ALL_MCC_ITEMS[0]
   );
   const [isOnline, setIsOnline] = useState<boolean>(false);
@@ -49,7 +49,6 @@ export default function HomePage() {
 
   // Compute recommendations dynamically with previous statement spend tier and transactions limits
   const recommendations = useMemo(() => {
-    if (!selectedMcc) return [];
     return getRecommendedCardsForMcc(
       selectedMcc,
       {
@@ -100,31 +99,98 @@ export default function HomePage() {
         />
       </div>
 
-      {/* Active MCC Badge Bar */}
-      {selectedMcc && (
-        <div className="max-w-4xl mx-auto p-4 rounded-2xl bg-slate-900/80 border border-amber-500/20 glass-panel flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Active Filter / MCC Badge Bar */}
+      <div className="max-w-4xl mx-auto p-4 rounded-2xl bg-slate-900/80 border border-amber-500/20 glass-panel flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        {selectedMcc ? (
+          <>
+            <div className="flex items-center gap-3">
+              <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-mono font-black text-lg border border-amber-500/30 shrink-0">
+                MCC {selectedMcc.code}
+              </span>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-white text-base">{selectedMcc.name}</span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-white/10">
+                    {selectedMcc.category}
+                  </span>
+                  {isOnline && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                      🌐 Online
+                    </span>
+                  )}
+                  {isForeign && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      💱 Ngoại tệ
+                    </span>
+                  )}
+                  {isSavedCard && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      🔖 Đã lưu thẻ
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-400 mt-0.5">{selectedMcc.description}</p>
+              </div>
+            </div>
+            {selectedMcc.popularBrands && selectedMcc.popularBrands.length > 0 && (
+              <div className="text-xs text-slate-400 shrink-0">
+                <span className="text-slate-500">Ví dụ: </span>
+                <span className="text-slate-300 font-medium">{selectedMcc.popularBrands.slice(0, 3).join(", ")}</span>
+              </div>
+            )}
+          </>
+        ) : isOnline && isForeign ? (
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-mono font-black text-lg border border-amber-500/30">
-              MCC {selectedMcc.code}
+            <span className="px-3 py-1 rounded-xl bg-sky-500/20 text-sky-300 font-black text-sm border border-sky-500/30">
+              🌐 💱 Online Ngoại tệ
             </span>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-white text-base">{selectedMcc.name}</span>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-white/10">
-                  {selectedMcc.category}
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mt-0.5">{selectedMcc.description}</p>
+              <span className="font-bold text-white text-base">Chi tiêu Trực tuyến Quốc tế / Ngoại tệ</span>
+              <p className="text-xs text-slate-400">Tự động chọn thẻ hoàn tiền cao nhất cho giao dịch online bằng ngoại tệ (VIB Online Plus 5%, Super Card 15%...)</p>
             </div>
           </div>
-          {selectedMcc.popularBrands && selectedMcc.popularBrands.length > 0 && (
-            <div className="text-xs text-slate-400 shrink-0">
-              <span className="text-slate-500">Ví dụ: </span>
-              <span className="text-slate-300 font-medium">{selectedMcc.popularBrands.slice(0, 3).join(", ")}</span>
+        ) : isOnline ? (
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 rounded-xl bg-sky-500/20 text-sky-300 font-black text-sm border border-sky-500/30">
+              🌐 Chi tiêu Online
+            </span>
+            <div>
+              <span className="font-bold text-white text-base">Giao dịch Trực tuyến / Mua sắm Online</span>
+              <p className="text-xs text-slate-400">Đang so sánh các thẻ có ưu đãi hoàn tiền cho chi tiêu Online (Shopee, Lazada, Tiki, Website/App...)</p>
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        ) : isForeign ? (
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 font-black text-sm border border-emerald-500/30">
+              💱 Ngoại tệ / POS Nước ngoài
+            </span>
+            <div>
+              <span className="font-bold text-white text-base">Chi tiêu Quốc tế / POS Nước ngoài</span>
+              <p className="text-xs text-slate-400">Đang so sánh các thẻ hoàn tiền cao nhất cho giao dịch ngoại tệ hoặc quẹt thẻ tại nước ngoài</p>
+            </div>
+          </div>
+        ) : isSavedCard ? (
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 rounded-xl bg-purple-500/20 text-purple-300 font-black text-sm border border-purple-500/30">
+              🔖 Đã lưu thẻ
+            </span>
+            <div>
+              <span className="font-bold text-white text-base">Giao dịch có Lưu thông tin Thẻ</span>
+              <p className="text-xs text-slate-400">Hoàn tiền cố định cho các ứng dụng có lưu thẻ thanh toán (Grab, Spotify, Netflix, Agoda, Tiki...)</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 rounded-xl bg-slate-800 text-amber-300 font-black text-sm border border-white/10">
+              💳 Tất cả các thẻ
+            </span>
+            <div>
+              <span className="font-bold text-white text-base">So sánh Tỷ lệ hoàn tiền & Tích lũy cơ bản</span>
+              <p className="text-xs text-slate-400">Nhập mã MCC hoặc chọn ô tính năng (Online, Ngoại tệ, Lưu thẻ) ở trên để nhận đề xuất tối ưu nhất</p>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Recommendations Result */}
       <div className="max-w-4xl mx-auto">
@@ -132,7 +198,7 @@ export default function HomePage() {
           results={recommendations}
           spendAmount={spendAmount}
           selectedMccCode={selectedMcc?.code}
-          selectedMccName={selectedMcc?.name}
+          selectedMccName={selectedMcc ? selectedMcc.name : isOnline ? "Chi tiêu Trực tuyến (Online)" : isForeign ? "Chi tiêu Ngoại tệ" : isSavedCard ? "Lưu thẻ" : undefined}
         />
       </div>
 

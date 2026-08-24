@@ -469,7 +469,7 @@ export function getEffectiveCardRate(
 
 // Smart recommendation algorithm with dynamic previous cycle tier and real-time transaction limit tracking
 export function getRecommendedCardsForMcc(
-  mcc: MccItem,
+  mcc?: MccItem | null,
   options?: {
     isOnline?: boolean;
     isForeign?: boolean;
@@ -501,32 +501,33 @@ export function getRecommendedCardsForMcc(
       let matchType: "mcc_exact" | "category" | "online" | "foreign" | "saved_card" | "general" = "category";
       const notes: string[] = [];
 
-      // Saved card match (VIB Online Plus 2in1 Ưu đãi 2)
+      // 1. Saved card match (VIB Online Plus 2in1 Ưu đãi 2)
       if (options?.isSavedCard && rule.isSavedCardOnly) {
         matches = true;
         matchType = "saved_card";
         notes.push("Ưu đãi: Hoàn 50.000 VNĐ / giao dịch lưu thông tin thẻ trên Grab, Netflix, Tiki, Agoda, Spotify...");
       }
-      // Foreign online match
+      // 2. Foreign online match
       else if (options?.isOnline && options?.isForeign && rule.isForeignOnly && rule.isOnlineOnly) {
         matches = true;
         matchType = "foreign";
         notes.push("Ưu đãi: Hoàn chi tiêu trực tuyến tại ĐVCNT ngoài lãnh thổ VN bằng ngoại tệ");
       }
-      // Foreign offline match
+      // 3. Foreign offline match
       else if (options?.isForeign && rule.isForeignOnly && !rule.isOnlineOnly) {
         matches = true;
         matchType = "foreign";
         notes.push("Ưu đãi cho giao dịch qua POS / Contactless nước ngoài");
       }
-      // Direct MCC match
-      else if (rule.mccCodes && rule.mccCodes.includes(mcc.code)) {
+      // 4. Direct MCC match (if MCC is provided)
+      else if (mcc && rule.mccCodes && rule.mccCodes.includes(mcc.code)) {
         matches = true;
         matchType = "mcc_exact";
         if (rule.note) notes.push(rule.note);
       }
-      // Category match
+      // 5. Category match (if MCC is provided)
       else if (
+        mcc &&
         rule.category &&
         (rule.category.toLowerCase() === mcc.category.toLowerCase() ||
           mcc.category.toLowerCase().includes(rule.category.toLowerCase()))
@@ -539,14 +540,21 @@ export function getRecommendedCardsForMcc(
           if (rule.note) notes.push(rule.note);
         }
       }
-      // Online general match
-      else if (options?.isOnline && rule.isOnlineOnly && !rule.isForeignOnly) {
-        if (rule.excludedMcc && rule.excludedMcc.includes(mcc.code)) {
+      // 6. Online match (applies whenever isOnline is toggled, with or without specific MCC)
+      else if (
+        options?.isOnline &&
+        (rule.isOnlineOnly ||
+          rule.category === "Giao dịch trực tuyến" ||
+          (rule.category && rule.category.toLowerCase().includes("trực tuyến")) ||
+          (rule.category && rule.category.toLowerCase().includes("online"))) &&
+        !rule.isForeignOnly
+      ) {
+        if (mcc && rule.excludedMcc && rule.excludedMcc.includes(mcc.code)) {
           matches = false;
         } else {
           matches = true;
           matchType = "online";
-          notes.push("Ưu đãi giao dịch trực tuyến nội địa");
+          notes.push(rule.note || "Ưu đãi chi tiêu giao dịch trực tuyến (Online)");
         }
       }
 
