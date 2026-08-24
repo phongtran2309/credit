@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getStoredCards } from "@/lib/storage";
+import { getStoredCards, syncCardsFromSupabase } from "@/lib/storage";
 import { CreditCard } from "@/types";
 import CreditCardVisual from "@/components/CreditCardVisual";
 import { formatCurrencyVND } from "@/lib/statement-helper";
@@ -30,6 +30,17 @@ export default function CardsPage() {
     if (loaded.length > 0) {
       setExpandedCardId(loaded[0].id);
     }
+
+    // Try syncing from Supabase if connected
+    syncCardsFromSupabase().then((synced) => {
+      if (synced) setCards(synced);
+    });
+
+    const handleUpdate = () => {
+      setCards(getStoredCards());
+    };
+    window.addEventListener("cards_updated", handleUpdate);
+    return () => window.removeEventListener("cards_updated", handleUpdate);
   }, []);
 
   const toggleExpand = (id: string) => {

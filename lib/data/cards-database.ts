@@ -340,8 +340,8 @@ export const DEFAULT_CARDS: CreditCard[] = [
     name: "Shinhan Supreme",
     bank: "Shinhan Bank",
     cardType: "Visa Supreme / Tích 12% Điểm Thưởng",
-    statementDay: 20,
-    dueDay: 6,
+    statementDay: 25,
+    dueDay: 10,
     annualFee: 550000,
     maxCashbackPerMonth: 1000000, // Tối đa 1.000.000 Điểm thưởng đặc biệt/kỳ (khi chi tiêu ≥ 15tr) hoặc 300.000 Điểm (chi tiêu ≥ 3tr)
     defaultCashbackRate: 0.1,
@@ -368,7 +368,7 @@ export const DEFAULT_CARDS: CreditCard[] = [
       "Hạn mức điểm thưởng đặc biệt: 1.000.000 điểm/kỳ (khi chi tiêu ≥ 15tr) hoặc 300.000 điểm/kỳ (chi tiêu ≥ 3tr)",
       "Mốc chi tiêu tối ưu: 15.000.000 VNĐ/kỳ (với ~8.33tr nhóm 12%) để nhận full 1.000.000 điểm thưởng",
       "Điểm thưởng được ghi nhận vào Bảng sao kê của kỳ tiếp theo (N+1)",
-      "Ngày chốt sao kê: 20 hàng tháng - Hạn thanh toán: ngày 06",
+      "Ngày chốt sao kê: 25 hàng tháng - Hạn thanh toán: ngày 10",
     ],
     rules: [
       {

@@ -5,6 +5,7 @@ import {
   getStoredTransactions,
   getStoredCards,
   deleteTransaction,
+  syncCardsFromSupabase,
 } from "@/lib/storage";
 import { calculateStatementCycle, isDateInCycle, formatCurrencyVND } from "@/lib/statement-helper";
 import { Transaction, CreditCard, CardSpendingSummary } from "@/types";
@@ -34,9 +35,18 @@ export default function TrackerPage() {
   useEffect(() => {
     loadData();
 
+    // Try syncing from Supabase if connected
+    syncCardsFromSupabase().then((synced) => {
+      if (synced) setCards(synced);
+    });
+
     const handleUpdate = () => loadData();
     window.addEventListener("transaction_updated", handleUpdate);
-    return () => window.removeEventListener("transaction_updated", handleUpdate);
+    window.addEventListener("cards_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("transaction_updated", handleUpdate);
+      window.removeEventListener("cards_updated", handleUpdate);
+    };
   }, []);
 
   // Compute spending summary per card for the current statement cycle

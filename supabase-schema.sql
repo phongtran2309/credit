@@ -62,7 +62,7 @@ INSERT INTO cards (id, name, bank, statement_day, due_day, max_cashback_per_mont
 ('vib-online-plus-2in1', 'VIB Online Plus 2in1', 'VIB', 27, 21, 600000, NULL, 0.1),
 ('vib-cash-back', 'VIB Cash Back', 'VIB', 27, 21, 2000000, NULL, 0.1),
 ('vib-max-card', 'VIB Max Card', 'VIB', 27, 21, 1500000, 1500000, 0.1),
-('shinhan-supreme', 'Shinhan Supreme', 'Shinhan Bank', 20, 6, 1000000, 1000000, 0.1)
+('shinhan-supreme', 'Shinhan Supreme', 'Shinhan Bank', 25, 10, 1000000, 1000000, 0.1)
 ON CONFLICT (id) DO UPDATE SET
     statement_day = EXCLUDED.statement_day,
     due_day = EXCLUDED.due_day,

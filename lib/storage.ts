@@ -126,7 +126,7 @@ export function deleteTransaction(id: string): Transaction[] {
   return updated;
 }
 
-export const CURRENT_DATA_VERSION = "v2.3_shinhan_supreme_added";
+export const CURRENT_DATA_VERSION = "v2.4_shinhan_statement_25";
 
 export function getStoredCards(): CreditCard[] {
   if (typeof window === "undefined") return DEFAULT_CARDS;
@@ -171,7 +171,43 @@ export function resetToDefaults(): void {
   localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(DEFAULT_CARDS));
 }
 
-// Background Supabase Sync Helper
+// Background Supabase Sync Helpers
+export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client.from("cards").select("*");
+    if (error || !data || data.length === 0) return null;
+
+    const currentCards = getStoredCards();
+    const updated = currentCards.map((c) => {
+      const dbCard = data.find((d: any) => d.id === c.id);
+      if (dbCard) {
+        return {
+          ...c,
+          statementDay: dbCard.statement_day ?? c.statementDay,
+          dueDay: dbCard.due_day ?? c.dueDay,
+          maxCashbackPerMonth: dbCard.max_cashback_per_month ?? c.maxCashbackPerMonth,
+          maxCashbackPerCategory: dbCard.max_cashback_per_category ?? c.maxCashbackPerCategory,
+          name: dbCard.name ?? c.name,
+          bank: dbCard.bank ?? c.bank,
+        };
+      }
+      return c;
+    });
+
+    saveCards(updated);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("cards_updated"));
+    }
+    return updated;
+  } catch (e) {
+    console.warn("Lỗi sync cards từ Supabase:", e);
+    return null;
+  }
+}
+
 async function syncTransactionToSupabase(tx: Transaction) {
   const client = getSupabaseClient();
   if (!client) return;
