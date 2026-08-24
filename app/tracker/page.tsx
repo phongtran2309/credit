@@ -171,7 +171,7 @@ export default function TrackerPage() {
         </div>
         <h1 className="text-2xl sm:text-4xl font-black text-white">Sổ tay Chi tiêu & Kỳ sao kê</h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Theo dõi chi tiêu theo chu kỳ ngày chốt 27 của từng thẻ VIB, đảm bảo tối đa hóa mức hoàn tiền không vượt trần.
+          Theo dõi chi tiêu theo chu kỳ ngày chốt sao kê của từng thẻ tín dụng (VIB, Shinhan Bank...), đảm bảo tối đa hóa mức hoàn tiền/điểm thưởng và không vượt trần.
         </p>
       </div>
 

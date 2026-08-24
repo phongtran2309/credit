@@ -30,7 +30,7 @@ export default function Navbar() {
               <div className="flex items-center gap-1.5 font-bold text-lg tracking-tight text-white">
                 <span>MCC Cashback</span>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3" /> VIB Pro
+                  <Sparkles className="w-3 h-3" /> Multi-Bank
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium hidden sm:block">

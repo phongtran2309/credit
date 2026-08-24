@@ -450,16 +450,16 @@ function buildFullMccDatabase(): MccItem[] {
     for (const code of codes) {
       if (!processedCodes.has(code)) {
         let defaultName = `Dịch vụ ${category} (Mã ${code})`;
-        let defaultDesc = `Giao dịch ${category} được VIB xếp loại theo MCC ${code}`;
+        let defaultDesc = `Giao dịch ${category} theo mã phân loại danh mục MCC ${code}`;
 
         // Specific airlines or hotels prefix range
         const num = parseInt(code, 10);
         if (num >= 3000 && num <= 3308) {
           defaultName = `Hãng hàng không / Hàng không quốc tế (${code})`;
-          defaultDesc = `Mã định danh hàng không quốc tế thuộc danh mục Du lịch VIB`;
+          defaultDesc = `Mã định danh hàng không quốc tế thuộc danh mục Du lịch`;
         } else if (num >= 3501 && num <= 3838) {
           defaultName = `Chuỗi khách sạn / Resort quốc tế (${code})`;
-          defaultDesc = `Mã định danh chuỗi khách sạn/nghỉ dưỡng quốc tế thuộc danh mục Du lịch VIB`;
+          defaultDesc = `Mã định danh chuỗi khách sạn/nghỉ dưỡng quốc tế thuộc danh mục Du lịch`;
         }
 
         items.push({

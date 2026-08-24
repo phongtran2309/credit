@@ -65,7 +65,7 @@ export default function HomePage() {
           </span>
         </h1>
         <p className="text-slate-300 text-sm sm:text-base font-normal max-w-2xl mx-auto">
-          Tự động tính toán tỷ lệ hoàn tiền/tích điểm chính xác cho VIB Super Card (15%), Shinhan Supreme (12%), VIB Family Link, VIB Cash Back & VIB Online Plus 2in1.
+          Tự động so sánh và tính toán tỷ lệ hoàn tiền/tích điểm tối ưu nhất cho các dòng thẻ tín dụng đa ngân hàng (VIB, Shinhan Bank, VPBank, Techcombank...).
         </p>
       </div>
 
@@ -131,7 +131,7 @@ export default function HomePage() {
           </div>
           <h4 className="font-bold text-white text-sm">Chuẩn xác từng bậc chi tiêu</h4>
           <p className="text-xs text-slate-400">
-            Tự động điều chỉnh tỷ lệ 5%, 8%, 10% theo tổng chi tiêu kỳ liền trước của Family Link & Cash Back.
+            Tự động điều chỉnh tỷ lệ % hoàn tiền theo tổng chi tiêu kỳ liền trước của các dòng thẻ có điều kiện phân tầng.
           </p>
         </div>
 
@@ -139,9 +139,9 @@ export default function HomePage() {
           <div className="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/30 flex items-center justify-center text-sky-400">
             <TrendingUp className="w-5 h-5" />
           </div>
-          <h4 className="font-bold text-white text-sm">Hạn mức 500k/danh mục & Trần sao kê</h4>
+          <h4 className="font-bold text-white text-sm">Quản lý trần danh mục & sao kê</h4>
           <p className="text-xs text-slate-400">
-            Quản lý giới hạn 500.000 Điểm/danh mục cho Super Card & Family Link, cảnh báo khi chạm trần.
+            Kiểm soát trần hoàn tiền theo từng ngành hàng và toàn chu kỳ, cảnh báo thông minh khi sắp chạm hạn mức.
           </p>
           <Link
             href="/tracker"

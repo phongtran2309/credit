@@ -469,7 +469,7 @@ export default function TransactionModal({
                 <span className="text-xs text-slate-300 font-medium block">Tỷ lệ hoàn tự động</span>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-lg font-black text-amber-400">{cashbackRate}%</span>
-                  <span className="text-xs text-slate-400">({selectedCard?.bank || "VIB"})</span>
+                  <span className="text-xs text-slate-400">({selectedCard?.bank || "Thẻ tín dụng"})</span>
                 </div>
               </div>
               <div className="text-right">
