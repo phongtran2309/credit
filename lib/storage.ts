@@ -122,19 +122,23 @@ export function updateTransaction(id: string, updates: Partial<Transaction>): Tr
   if (client) {
     const targetTx = updated.find((t) => t.id === id);
     if (targetTx) {
-      client
-        .from("transactions")
-        .update({
-          card_id: targetTx.cardId,
-          mcc_code: targetTx.mccCode,
-          amount: targetTx.amount,
-          transaction_date: targetTx.transactionDate,
-          cashback_amount: targetTx.cashbackAmount,
-          note: targetTx.note || null,
-        })
-        .eq("id", id)
-        .then(() => {})
-        .catch((e) => console.warn("Lỗi cập nhật giao dịch lên Supabase:", e));
+      (async () => {
+        try {
+          await client
+            .from("transactions")
+            .update({
+              card_id: targetTx.cardId,
+              mcc_code: targetTx.mccCode,
+              amount: targetTx.amount,
+              transaction_date: targetTx.transactionDate,
+              cashback_amount: targetTx.cashbackAmount,
+              note: targetTx.note || null,
+            })
+            .eq("id", id);
+        } catch (e) {
+          console.warn("Lỗi cập nhật giao dịch lên Supabase:", e);
+        }
+      })();
     }
   }
 
@@ -149,12 +153,13 @@ export function deleteTransaction(id: string): Transaction[] {
   // Sync delete to Supabase in background
   const client = getSupabaseClient();
   if (client) {
-    client
-      .from("transactions")
-      .delete()
-      .eq("id", id)
-      .then(() => {})
-      .catch((e) => console.warn("Lỗi xóa giao dịch trên Supabase:", e));
+    (async () => {
+      try {
+        await client.from("transactions").delete().eq("id", id);
+      } catch (e) {
+        console.warn("Lỗi xóa giao dịch trên Supabase:", e);
+      }
+    })();
   }
 
   return updated;
