@@ -12,6 +12,8 @@ interface CreditCardVisualProps {
 export default function CreditCardVisual({ card, compact = false }: CreditCardVisualProps) {
   const [imageError, setImageError] = useState(false);
 
+  if (!card) return null;
+
   const gradient = card.colorGradient || {
     from: "from-slate-800",
     to: "to-zinc-950",
@@ -19,6 +21,17 @@ export default function CreditCardVisual({ card, compact = false }: CreditCardVi
     accent: "bg-amber-400",
     border: "border-amber-500/30",
   };
+
+  const cardName = card.name || "Tên thẻ tín dụng";
+  const bankName = card.bank || "Ngân hàng";
+  const cardType = card.cardType || "Visa / Mastercard";
+  const statementDay = card.statementDay || 20;
+
+  // Safe subtitle display
+  let displaySubtitle = cardName;
+  if (bankName && cardName.toLowerCase().startsWith(bankName.toLowerCase())) {
+    displaySubtitle = cardName.slice(bankName.length).trim() || cardName;
+  }
 
   if (card.imageUrl && !imageError) {
     return (
@@ -29,7 +42,7 @@ export default function CreditCardVisual({ card, compact = false }: CreditCardVi
       >
         <img
           src={card.imageUrl}
-          alt={card.name}
+          alt={cardName}
           onError={() => setImageError(true)}
           className="w-full h-full object-contain object-center drop-shadow-2xl rounded-xl"
         />
@@ -57,40 +70,40 @@ export default function CreditCardVisual({ card, compact = false }: CreditCardVi
 
       {/* Card Header: Bank Name & Contactless */}
       <div className="flex items-center justify-between z-10">
-        <div className="flex items-center gap-2">
-          <span className="font-extrabold tracking-wider text-xl text-white drop-shadow-md">
-            {card.bank}
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-extrabold tracking-wider text-xl text-white drop-shadow-md truncate">
+            {bankName}
           </span>
-          <span className="text-[10px] px-2 py-0.5 rounded bg-white/15 text-white font-medium backdrop-blur-sm border border-white/20">
-            {card.name.replace(new RegExp(`^(${card.bank}|VIB|VPBank|Shinhan Bank|Shinhan|Techcombank)\\s+`, "i"), "")}
+          <span className="text-[10px] px-2 py-0.5 rounded bg-white/15 text-white font-medium backdrop-blur-sm border border-white/20 truncate">
+            {displaySubtitle}
           </span>
         </div>
-        <Wifi className="w-5 h-5 text-white/80 rotate-90" />
+        <Wifi className="w-5 h-5 text-white/80 rotate-90 shrink-0 ml-2" />
       </div>
 
       {/* Card EMV Chip & Hologram */}
       <div className="flex items-center gap-4 my-auto z-10">
         {/* EMV Chip */}
-        <div className="w-11 h-8 rounded-md bg-gradient-to-tr from-amber-200 via-amber-400 to-yellow-100 border border-amber-500/60 p-1 flex flex-col justify-between shadow-inner">
+        <div className="w-11 h-8 rounded-md bg-gradient-to-tr from-amber-200 via-amber-400 to-yellow-100 border border-amber-500/60 p-1 flex flex-col justify-between shadow-inner shrink-0">
           <div className="w-full h-px bg-amber-700/40" />
           <div className="w-full h-px bg-amber-700/40" />
         </div>
 
         {/* Small badge */}
         <div className="text-[11px] font-semibold text-white/80 flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-amber-300" />
-          <span>Hoàn tối đa {card.maxCashbackPerMonth ? (card.maxCashbackPerMonth / 1000).toLocaleString() + "k" : "1Tr"}/kỳ</span>
+          <Sparkles className="w-3 h-3 text-amber-300 shrink-0" />
+          <span>Hoàn tối đa {card.maxCashbackPerMonth ? (Number(card.maxCashbackPerMonth) / 1000).toLocaleString() + "k" : "1Tr"}/kỳ</span>
         </div>
       </div>
 
       {/* Card Footer: Cardholder & Network Logo */}
       <div className="flex items-end justify-between z-10">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="text-[9px] text-white/60 tracking-wider uppercase font-semibold">
-            Chốt sao kê ngày {card.statementDay}
+            Chốt sao kê ngày {statementDay}
           </div>
           <div className={`font-semibold tracking-wide ${gradient.text} text-sm drop-shadow truncate`}>
-            {card.name}
+            {cardName}
           </div>
           {card.cardholderName && (
             <div className="text-[10px] font-mono font-bold tracking-widest text-white/90 uppercase mt-0.5 truncate">
@@ -100,7 +113,7 @@ export default function CreditCardVisual({ card, compact = false }: CreditCardVi
         </div>
 
         {/* Card Network Logo (VISA or Mastercard) */}
-        {(card.cardType || "").toLowerCase().includes("visa") ? (
+        {cardType.toLowerCase().includes("visa") ? (
           <div className="px-2 py-0.5 rounded bg-white/15 border border-white/20 backdrop-blur-sm shrink-0 ml-2">
             <span className="text-base font-black italic tracking-widest text-white drop-shadow">VISA</span>
           </div>
