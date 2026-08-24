@@ -1,5 +1,6 @@
-import { CreditCard, CardRecommendationResult, MccItem, PreviousSpendTier } from "@/types";
+import { CreditCard, CardRecommendationResult, MccItem, PreviousSpendTier, Transaction } from "@/types";
 import { RAW_VIB_MCC_DATA } from "./mcc-database";
+import { calculateStatementCycle, isDateInCycle } from "../statement-helper";
 
 export const DEFAULT_CARDS: CreditCard[] = [
   {
@@ -459,7 +460,7 @@ export function getEffectiveCardRate(
   return { rate, maxCardCap, maxCategoryCap, noteText };
 }
 
-// Smart recommendation algorithm with dynamic previous cycle tier support
+// Smart recommendation algorithm with dynamic previous cycle tier and real-time transaction limit tracking
 export function getRecommendedCardsForMcc(
   mcc: MccItem,
   options?: {
@@ -469,11 +470,12 @@ export function getRecommendedCardsForMcc(
     amount?: number;
     previousSpendTier?: PreviousSpendTier;
   },
-  customCards?: CreditCard[]
+  customCards?: CreditCard[],
+  transactions?: Transaction[]
 ): CardRecommendationResult[] {
   const cards = customCards || DEFAULT_CARDS;
   const results: CardRecommendationResult[] = [];
-  const spendAmount = options?.amount || 1000000;
+  const spendAmount = options?.amount !== undefined ? options.amount : 1000000;
   const prevTier = options?.previousSpendTier || "tier1"; // Mặc định bậc 1 (<= 50tr) hoặc người dùng tự chọn
 
   for (const card of cards) {
@@ -496,19 +498,19 @@ export function getRecommendedCardsForMcc(
       if (options?.isSavedCard && rule.isSavedCardOnly) {
         matches = true;
         matchType = "saved_card";
-        notes.push("Ưu đãi 2: Hoàn 50.000 VNĐ / giao dịch lưu thông tin thẻ trên Grab, Netflix, Tiki, Agoda, Spotify...");
+        notes.push("Ưu đãi: Hoàn 50.000 VNĐ / giao dịch lưu thông tin thẻ trên Grab, Netflix, Tiki, Agoda, Spotify...");
       }
-      // Foreign online match (VIB Online Plus 2in1 Ưu đãi 1: 5%)
+      // Foreign online match
       else if (options?.isOnline && options?.isForeign && rule.isForeignOnly && rule.isOnlineOnly) {
         matches = true;
         matchType = "foreign";
-        notes.push("Ưu đãi 1: Hoàn 5% chi tiêu trực tuyến tại ĐVCNT ngoài lãnh thổ VN bằng ngoại tệ");
+        notes.push("Ưu đãi: Hoàn chi tiêu trực tuyến tại ĐVCNT ngoài lãnh thổ VN bằng ngoại tệ");
       }
-      // Foreign offline match (Super Card 15%)
+      // Foreign offline match
       else if (options?.isForeign && rule.isForeignOnly && !rule.isOnlineOnly) {
         matches = true;
         matchType = "foreign";
-        notes.push("Hoàn 15% cho giao dịch qua POS / Contactless nước ngoài");
+        notes.push("Ưu đãi cho giao dịch qua POS / Contactless nước ngoài");
       }
       // Direct MCC match
       else if (rule.mccCodes && rule.mccCodes.includes(mcc.code)) {
@@ -564,7 +566,7 @@ export function getRecommendedCardsForMcc(
           cardId: card.id,
           category: "Chi tiêu thông thường",
           cashbackRate: card.defaultCashbackRate,
-          note: "Tích lũy cơ bản 0.1% cho giao dịch thông thường",
+          note: `Tích lũy cơ bản ${card.defaultCashbackRate}% cho giao dịch thông thường`,
         },
         rate: card.defaultCashbackRate,
         matchType: "general",
@@ -572,17 +574,55 @@ export function getRecommendedCardsForMcc(
       };
     }
 
-    // Calculate estimated cashback
-    let estimatedCashback = 0;
-    if (bestRule.fixedAmount && options?.isSavedCard) {
-      // Fixed 50.000 VND / tx (max 100k/month)
-      estimatedCashback = Math.min(bestRule.fixedAmount, 100000);
-    } else {
-      const calculated = (spendAmount * bestRule.rate) / 100;
-      const categoryCap = bestRule.maxCategoryCap || card.maxCashbackPerCategory || 1000000;
-      const { maxCardCap } = getEffectiveCardRate(bestRule.rule, card, prevTier);
-      estimatedCashback = Math.min(calculated, categoryCap, maxCardCap);
+    const { rate, maxCardCap, maxCategoryCap } = getEffectiveCardRate(bestRule.rule, card, prevTier);
+
+    // 1. Calculate current statement cycle usage from transactions history
+    let currentCycleSpent = 0;
+    let currentCycleCashback = 0;
+    let currentCategoryCashback = 0;
+
+    if (transactions && transactions.length > 0) {
+      const cycleInfo = calculateStatementCycle(card.statementDay, card.dueDay);
+      const cycleTxs = transactions.filter(
+        (tx) => tx.cardId === card.id && isDateInCycle(tx.transactionDate, cycleInfo)
+      );
+
+      currentCycleSpent = cycleTxs.reduce((s, tx) => s + tx.amount, 0);
+      currentCycleCashback = cycleTxs.reduce((s, tx) => s + tx.cashbackAmount, 0);
+
+      // Check category cashback spent so far in this cycle
+      const categoryTxs = cycleTxs.filter((tx) => {
+        if (bestRule?.rule?.category && tx.mccName) {
+          const tName = tx.mccName.toLowerCase();
+          const rCat = bestRule.rule.category.toLowerCase();
+          if (tName.includes(rCat) || rCat.includes(tName)) return true;
+        }
+        if (bestRule?.rule?.mccCodes && tx.mccCode) {
+          return bestRule.rule.mccCodes.includes(tx.mccCode);
+        }
+        return false;
+      });
+      currentCategoryCashback = categoryTxs.reduce((s, tx) => s + tx.cashbackAmount, 0);
     }
+
+    const remainingCardCap = Math.max(0, maxCardCap - currentCycleCashback);
+    const categoryLimit = maxCategoryCap || card.maxCashbackPerCategory;
+    const remainingCategoryCap =
+      categoryLimit !== undefined ? Math.max(0, categoryLimit - currentCategoryCashback) : remainingCardCap;
+
+    let theoreticalCashback = 0;
+    if (bestRule.fixedAmount && options?.isSavedCard) {
+      theoreticalCashback = Math.min(bestRule.fixedAmount, 100000);
+    } else {
+      theoreticalCashback = (spendAmount * rate) / 100;
+    }
+
+    // Actual estimated cashback is capped by both remaining card cap and remaining category cap!
+    const effectiveAvailableCap = Math.min(remainingCardCap, remainingCategoryCap);
+    const estimatedCashback = Math.min(theoreticalCashback, effectiveAvailableCap);
+
+    const isCapReached = remainingCardCap <= 0;
+    const isCategoryCapReached = categoryLimit !== undefined && remainingCategoryCap <= 0;
 
     const tierLabels = {
       tier1: "Kỳ trước ≤ 50 triệu",
@@ -593,17 +633,30 @@ export function getRecommendedCardsForMcc(
     results.push({
       card,
       rule: bestRule.rule,
-      cashbackRate: bestRule.rate,
+      cashbackRate: rate,
       estimatedCashback,
+      theoreticalCashback,
+      remainingCardCap,
+      remainingCategoryCap,
+      currentCycleSpent,
+      currentCycleCashback,
+      isCapReached,
+      isCategoryCapReached,
       matchType: bestRule.matchType,
       notes: bestRule.notes,
       tierSpendLevel: card.hasPreviousCycleTier ? tierLabels[prevTier] : undefined,
-      maxCategoryCap: bestRule.maxCategoryCap || card.maxCashbackPerCategory,
+      maxCategoryCap: categoryLimit,
     });
   }
 
-  // Sort descending by cashback rate and estimated cashback
-  results.sort((a, b) => b.cashbackRate - a.cashbackRate || b.estimatedCashback - a.estimatedCashback);
+  // Sort descending by:
+  // 1. Cards with estimatedCashback > 0 sorted by estimatedCashback DESC, then cashbackRate DESC
+  // 2. Cards that have reached the cap (estimatedCashback === 0) pushed to bottom
+  results.sort((a, b) => {
+    if (a.estimatedCashback > 0 && b.estimatedCashback === 0) return -1;
+    if (a.estimatedCashback === 0 && b.estimatedCashback > 0) return 1;
+    return b.estimatedCashback - a.estimatedCashback || b.cashbackRate - a.cashbackRate;
+  });
 
   return results;
 }

@@ -78,19 +78,39 @@ export default function CardRecommendation({
               </div>
               <div className="p-3 rounded-2xl bg-slate-900/80 border border-emerald-500/30">
                 <span className="text-xs text-slate-400 font-medium block">Ước tính nhận</span>
-                <span className="text-xl font-bold text-emerald-400">
+                <span className={`text-xl font-bold ${topCard.estimatedCashback > 0 ? "text-emerald-400" : "text-slate-400"}`}>
                   +{formatCurrencyVND(topCard.estimatedCashback)}
                 </span>
+                {topCard.theoreticalCashback !== undefined && topCard.theoreticalCashback > topCard.estimatedCashback && (
+                  <span className="text-[10px] text-amber-300/80 block mt-0.5">
+                    (Gốc: +{formatCurrencyVND(topCard.theoreticalCashback)})
+                  </span>
+                )}
               </div>
               <div className="col-span-2 sm:col-span-1 p-3 rounded-2xl bg-slate-900/80 border border-white/10">
                 <span className="text-xs text-slate-400 font-medium block">
-                  {topCard.maxCategoryCap ? "Trần danh mục/kỳ" : "Trần hoàn/kỳ"}
+                  {topCard.remainingCardCap !== undefined ? "Hạn mức còn lại kỳ này" : "Trần hoàn/kỳ"}
                 </span>
                 <span className="text-base font-bold text-white">
-                  {formatCurrencyVND(topCard.maxCategoryCap || topCard.card.maxCashbackPerMonth)}
+                  {topCard.remainingCardCap !== undefined
+                    ? formatCurrencyVND(topCard.remainingCardCap)
+                    : formatCurrencyVND(topCard.maxCategoryCap || topCard.card.maxCashbackPerMonth)}
                 </span>
+                {topCard.currentCycleCashback !== undefined && (
+                  <span className="text-[10px] text-slate-400 block mt-0.5">
+                    Đã hoàn: {formatCurrencyVND(topCard.currentCycleCashback)} / {formatCurrencyVND(topCard.card.maxCashbackPerMonth)}
+                  </span>
+                )}
               </div>
             </div>
+
+            {/* Cap Warning Alert if reached */}
+            {topCard.isCapReached && (
+              <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-2">
+                <Info className="w-4 h-4 shrink-0 text-amber-400" />
+                <span>Thẻ này đã đạt trần hoàn tiền tối đa trong chu kỳ sao kê hiện tại. Bạn nên chọn thẻ tiếp theo!</span>
+              </div>
+            )}
 
             {/* Quick Action */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 pt-2">
@@ -113,7 +133,7 @@ export default function CardRecommendation({
             <Zap className="w-4 h-4 text-amber-400" />
             Bảng so sánh tất cả các thẻ khả dụng ({results.length})
           </h4>
-          <span className="text-xs text-slate-400">Sắp xếp theo tỷ lệ hoàn tiền</span>
+          <span className="text-xs text-slate-400">Sắp xếp theo số tiền hoàn thực tế còn lại</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -121,18 +141,27 @@ export default function CardRecommendation({
             <div
               key={res.card.id}
               className={`p-5 rounded-2xl glass-panel glass-panel-hover flex flex-col justify-between border ${
-                index === 0 ? "border-amber-500/40 bg-amber-500/5" : "border-white/10"
+                index === 0 && res.estimatedCashback > 0
+                  ? "border-amber-500/40 bg-amber-500/5"
+                  : res.isCapReached
+                  ? "border-white/5 opacity-75"
+                  : "border-white/10"
               }`}
             >
               <div>
                 {/* Header */}
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="w-5 h-5 rounded-full bg-slate-800 text-amber-400 font-bold text-xs flex items-center justify-center border border-white/10">
                         #{index + 1}
                       </span>
                       <h5 className="font-bold text-white text-base">{res.card.name}</h5>
+                      {res.isCapReached && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 font-bold border border-red-500/30">
+                          Đã chạm trần
+                        </span>
+                      )}
                     </div>
                     <span className="text-xs text-slate-400">
                       {res.card.bank} • Ngày chốt {res.card.statementDay}
@@ -148,23 +177,23 @@ export default function CardRecommendation({
                 </div>
 
                 {/* Estimation snippet */}
-                <div className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-1 text-xs">
-                  <div className="flex justify-between text-slate-300">
-                    <span>Chi tiêu {formatCurrencyVND(spendAmount)}:</span>
-                    <span className="font-bold text-emerald-400">
+                <div className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-1.5 text-xs">
+                  <div className="flex justify-between items-center text-slate-300">
+                    <span>Dự kiến nhận (tiêu {formatCurrencyVND(spendAmount)}):</span>
+                    <span className={`font-bold text-sm ${res.estimatedCashback > 0 ? "text-emerald-400" : "text-slate-400"}`}>
                       +{formatCurrencyVND(res.estimatedCashback)}
                     </span>
                   </div>
+                  {res.remainingCardCap !== undefined && (
+                    <div className="flex justify-between text-[11px] text-slate-400 pt-1 border-t border-white/5">
+                      <span>Đã hoàn kỳ này: {formatCurrencyVND(res.currentCycleCashback || 0)}</span>
+                      <span className="text-amber-300 font-semibold">Còn lại: {formatCurrencyVND(res.remainingCardCap)}</span>
+                    </div>
+                  )}
                   {res.maxCategoryCap && (
                     <div className="text-[11px] text-sky-300/90 flex items-center gap-1">
                       <Layers className="w-3 h-3 text-sky-400" />
-                      <span>Hạn mức tối đa danh mục: {formatCurrencyVND(res.maxCategoryCap)}/kỳ</span>
-                    </div>
-                  )}
-                  {res.card.optimalSpendNote && (
-                    <div className="text-[11px] text-emerald-300/90 flex items-start gap-1 font-medium">
-                      <Zap className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                      <span>{res.card.optimalSpendNote}</span>
+                      <span>Trần danh mục: {formatCurrencyVND(res.maxCategoryCap)}/kỳ</span>
                     </div>
                   )}
                   {res.rule.note && (

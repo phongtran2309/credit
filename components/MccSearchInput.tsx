@@ -234,27 +234,45 @@ export default function MccSearchInput({
 
       {/* Dynamic Spend Options & Conditions */}
       <div className="p-4 rounded-2xl glass-panel space-y-4 border border-white/10">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-white flex items-center gap-1.5">
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <label className="text-sm font-semibold text-white flex items-center gap-1.5">
               <CreditCard className="w-4 h-4 text-amber-400" />
               Số tiền dự kiến giao dịch:
-            </span>
+            </label>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[500000, 1000000, 2000000, 5000000, 10000000, 15000000, 20000000].map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
+                  onClick={() => setSpendAmount(amt)}
+                  className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
+                    spendAmount === amt
+                      ? "bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20"
+                      : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  }`}
+                >
+                  {amt / 1000000 >= 1 ? `${amt / 1000000}Tr` : `${amt / 1000}k`}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {[500000, 1000000, 2000000, 5000000, 10000000].map((amt) => (
-              <button
-                key={amt}
-                onClick={() => setSpendAmount(amt)}
-                className={`text-xs px-2.5 py-1 rounded-lg font-medium transition-all ${
-                  spendAmount === amt
-                    ? "bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20"
-                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
-                }`}
-              >
-                {amt / 1000000 >= 1 ? `${amt / 1000000}Tr` : `${amt / 1000}k`}
-              </button>
-            ))}
+
+          <div className="relative flex items-center">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={spendAmount > 0 ? Number(spendAmount).toLocaleString("vi-VN") : ""}
+              onChange={(e) => {
+                const rawValue = e.target.value.replace(/\D/g, "");
+                setSpendAmount(rawValue === "" ? 0 : Number(rawValue));
+              }}
+              placeholder="Nhập số tiền giao dịch (VD: 16.000.000)..."
+              className="w-full pl-4 pr-16 py-3 rounded-xl bg-slate-900/90 border border-white/10 text-amber-300 font-extrabold text-base sm:text-lg focus:border-amber-400 focus:outline-none placeholder:text-slate-500 placeholder:font-normal placeholder:text-sm shadow-inner"
+            />
+            <span className="absolute right-4 text-slate-400 text-xs font-bold pointer-events-none">
+              VNĐ
+            </span>
           </div>
         </div>
 

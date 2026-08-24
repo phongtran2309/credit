@@ -5,13 +5,14 @@ import MccSearchInput from "@/components/MccSearchInput";
 import CardRecommendation from "@/components/CardRecommendation";
 import { getMccByCode, ALL_MCC_ITEMS } from "@/lib/data/mcc-database";
 import { getRecommendedCardsForMcc } from "@/lib/data/cards-database";
-import { getStoredCards, syncCardsFromSupabase } from "@/lib/storage";
-import { MccItem, PreviousSpendTier, CreditCard } from "@/types";
+import { getStoredCards, getStoredTransactions, syncCardsFromSupabase, syncTransactionsFromSupabase } from "@/lib/storage";
+import { MccItem, PreviousSpendTier, CreditCard, Transaction } from "@/types";
 import { Sparkles, ShieldCheck, TrendingUp, ArrowRight, Award } from "lucide-react";
 import Link from "next/link";
 
 export default function HomePage() {
   const [cards, setCards] = useState<CreditCard[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   // Default to popular MCC: 6300 (Bảo hiểm) hoặc 5812 (Ẩm thực)
   const [selectedMcc, setSelectedMcc] = useState<MccItem>(
@@ -25,17 +26,28 @@ export default function HomePage() {
 
   useEffect(() => {
     setCards(getStoredCards());
+    setTransactions(getStoredTransactions());
 
     syncCardsFromSupabase().then((synced) => {
       if (synced) setCards(synced);
     });
+    syncTransactionsFromSupabase().then((synced) => {
+      if (synced) setTransactions(synced);
+    });
 
-    const handleUpdate = () => setCards(getStoredCards());
-    window.addEventListener("cards_updated", handleUpdate);
-    return () => window.removeEventListener("cards_updated", handleUpdate);
+    const handleCardsUpdate = () => setCards(getStoredCards());
+    const handleTxUpdate = () => setTransactions(getStoredTransactions());
+
+    window.addEventListener("cards_updated", handleCardsUpdate);
+    window.addEventListener("transaction_updated", handleTxUpdate);
+
+    return () => {
+      window.removeEventListener("cards_updated", handleCardsUpdate);
+      window.removeEventListener("transaction_updated", handleTxUpdate);
+    };
   }, []);
 
-  // Compute recommendations dynamically with previous statement spend tier
+  // Compute recommendations dynamically with previous statement spend tier and transactions limits
   const recommendations = useMemo(() => {
     if (!selectedMcc) return [];
     return getRecommendedCardsForMcc(
@@ -47,9 +59,10 @@ export default function HomePage() {
         amount: spendAmount,
         previousSpendTier,
       },
-      cards.length > 0 ? cards : undefined
+      cards.length > 0 ? cards : undefined,
+      transactions.length > 0 ? transactions : undefined
     );
-  }, [selectedMcc, isOnline, isForeign, isSavedCard, spendAmount, previousSpendTier, cards]);
+  }, [selectedMcc, isOnline, isForeign, isSavedCard, spendAmount, previousSpendTier, cards, transactions]);
 
   return (
     <div className="space-y-8">

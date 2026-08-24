@@ -114,6 +114,13 @@ export interface CardRecommendationResult {
   rule: CashbackRule;
   cashbackRate: number;
   estimatedCashback: number;
+  theoreticalCashback?: number;
+  remainingCardCap?: number;
+  remainingCategoryCap?: number;
+  currentCycleSpent?: number;
+  currentCycleCashback?: number;
+  isCapReached?: boolean;
+  isCategoryCapReached?: boolean;
   matchType: "mcc_exact" | "category" | "online" | "foreign" | "saved_card" | "general";
   notes: string[];
   tierSpendLevel?: string;
