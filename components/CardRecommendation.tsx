@@ -60,9 +60,16 @@ export default function CardRecommendation({
             </div>
 
             <div>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
-                {topCard.card.name}
-              </h3>
+              <div className="flex items-center justify-center lg:justify-start gap-2 flex-wrap">
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-white">
+                  {topCard.card.name}
+                </h3>
+                {topCard.card.cardholderName && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
+                    Chủ thẻ: {topCard.card.cardholderName}
+                  </span>
+                )}
+              </div>
               <p className="text-slate-300 text-sm mt-1">
                 {topCard.rule.note || topCard.card.features[0]}
               </p>
@@ -157,6 +164,11 @@ export default function CardRecommendation({
                         #{index + 1}
                       </span>
                       <h5 className="font-bold text-white text-base">{res.card.name}</h5>
+                      {res.card.cardholderName && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                          {res.card.cardholderName}
+                        </span>
+                      )}
                       {res.isCapReached && (
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 font-bold border border-red-500/30">
                           Đã chạm trần

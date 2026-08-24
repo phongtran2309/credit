@@ -269,7 +269,7 @@ export default function TransactionModal({
             >
               {cards.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} ({c.bank} - Ngày chốt {c.statementDay})
+                  {c.name}{c.cardholderName ? ` [${c.cardholderName}]` : ""} ({c.bank} - Ngày chốt {c.statementDay})
                 </option>
               ))}
             </select>

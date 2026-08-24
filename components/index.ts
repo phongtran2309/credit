@@ -5,3 +5,4 @@ export { default as CardRecommendation } from "./CardRecommendation";
 export { default as StatementProgress } from "./StatementProgress";
 export { default as SpendingChart } from "./SpendingChart";
 export { default as TransactionModal } from "./TransactionModal";
+export { default as CardModal } from "./CardModal";

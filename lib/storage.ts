@@ -166,21 +166,14 @@ export function deleteTransaction(id: string): Transaction[] {
   return updated;
 }
 
-export const CURRENT_DATA_VERSION = "v2.5_card_images_support";
+export const CURRENT_DATA_VERSION = "v2.7_cardholder_tran_van_phong";
 
 export function getStoredCards(): CreditCard[] {
   if (typeof window === "undefined") return DEFAULT_CARDS;
   try {
-    const storedVersion = localStorage.getItem("mcc_data_version");
-    // If version changed or cache is outdated, auto-refresh with latest DEFAULT_CARDS
-    if (storedVersion !== CURRENT_DATA_VERSION) {
-      localStorage.setItem("mcc_data_version", CURRENT_DATA_VERSION);
-      localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(DEFAULT_CARDS));
-      return DEFAULT_CARDS;
-    }
-
     const raw = localStorage.getItem(STORAGE_KEYS.CUSTOM_CARDS);
     if (!raw) {
+      localStorage.setItem("mcc_data_version", CURRENT_DATA_VERSION);
       localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(DEFAULT_CARDS));
       return DEFAULT_CARDS;
     }
@@ -202,6 +195,66 @@ export function saveCards(cards: CreditCard[]): void {
   } catch (e) {
     console.error("Lỗi lưu cards vào localStorage:", e);
   }
+}
+
+export function addCard(newCard: CreditCard): CreditCard[] {
+  const cards = getStoredCards();
+  const updated = [...cards, newCard];
+  saveCards(updated);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("cards_updated"));
+  }
+  return updated;
+}
+
+export function updateCard(id: string, updates: Partial<CreditCard>): CreditCard[] {
+  const cards = getStoredCards();
+  const updated = cards.map((c) => (c.id === id ? { ...c, ...updates } : c));
+  saveCards(updated);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("cards_updated"));
+  }
+  return updated;
+}
+
+export function deleteCard(id: string): CreditCard[] {
+  const cards = getStoredCards();
+  const updated = cards.filter((c) => c.id !== id);
+  saveCards(updated);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("cards_updated"));
+  }
+  return updated;
+}
+
+export function duplicateCard(
+  sourceCardId: string,
+  options: {
+    cardholderName: string;
+    customName?: string;
+    statementDay?: number;
+    dueDay?: number;
+  }
+): CreditCard | null {
+  const cards = getStoredCards();
+  const source = cards.find((c) => c.id === sourceCardId) || DEFAULT_CARDS.find((c) => c.id === sourceCardId);
+  if (!source) return null;
+
+  const newId = `card-${source.id.replace(/^card-/, "")}-${Date.now().toString(36)}`;
+  const clonedRules = source.rules.map((r) => ({ ...r, cardId: newId }));
+  const newCard: CreditCard = {
+    ...source,
+    id: newId,
+    name: options.customName || source.name,
+    cardholderName: options.cardholderName.trim(),
+    statementDay: options.statementDay ?? source.statementDay,
+    dueDay: options.dueDay ?? source.dueDay,
+    rules: clonedRules,
+    isCustom: true,
+  };
+
+  addCard(newCard);
+  return newCard;
 }
 
 export function resetToDefaults(): void {
@@ -283,6 +336,7 @@ export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
           maxCashbackPerCategory: dbCard.max_cashback_per_category ?? c.maxCashbackPerCategory,
           name: dbCard.name ?? c.name,
           bank: dbCard.bank ?? c.bank,
+          cardholderName: dbCard.cardholder_name ?? c.cardholderName,
           defaultCashbackRate: dbCard.default_cashback_rate ?? c.defaultCashbackRate,
           imageUrl: dbCard.image ?? dbCard.image_url ?? c.imageUrl,
           rules: updatedRules,

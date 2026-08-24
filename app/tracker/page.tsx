@@ -255,7 +255,7 @@ export default function TrackerPage() {
                 <option value="all">Tất cả các thẻ ({transactions.length})</option>
                 {cards.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {c.name}{c.cardholderName ? ` [${c.cardholderName}]` : ""}
                   </option>
                 ))}
               </select>
@@ -289,7 +289,14 @@ export default function TrackerPage() {
                           {tx.transactionDate}
                         </td>
                         <td className="py-3 px-3">
-                          <div className="font-semibold text-white">{card?.name || tx.cardId}</div>
+                          <div className="font-semibold text-white">
+                            {card?.name || tx.cardId}
+                            {card?.cardholderName && (
+                              <span className="text-[10px] text-emerald-400 font-medium ml-1.5">
+                                [{card.cardholderName}]
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
                             MCC {tx.mccCode}
                           </span>

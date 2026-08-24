@@ -57,6 +57,8 @@ export interface CreditCard {
   optimalSpendNote?: string; // Ghi chú chiến lược điểm ngọt chi tiêu
   categoryOptimalSpend?: { [category: string]: number }; // Mức chi tiêu tối ưu theo danh mục (VD: Giáo dục 10tr, Y tế 10tr)
   imageUrl?: string; // Link ảnh phôi thẻ thực tế
+  cardholderName?: string; // Tên chủ thẻ (Ví dụ: "Trần Phong", "Vợ"...)
+  isCustom?: boolean; // Thẻ người dùng tự thêm/nhân bản
 }
 
 export interface Transaction {

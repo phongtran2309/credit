@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getStoredCards, syncCardsFromSupabase } from "@/lib/storage";
+import { getStoredCards, syncCardsFromSupabase, deleteCard } from "@/lib/storage";
 import { CreditCard } from "@/types";
 import CreditCardVisual from "@/components/CreditCardVisual";
 import { formatCurrencyVND } from "@/lib/statement-helper";
@@ -16,13 +16,24 @@ import {
   DollarSign,
   PlusCircle,
   ShieldAlert,
+  Plus,
+  Copy,
+  Edit,
+  Trash2,
+  User,
 } from "lucide-react";
 import TransactionModal from "@/components/TransactionModal";
+import CardModal from "@/components/CardModal";
 
 export default function CardsPage() {
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
   const [activeTxCard, setActiveTxCard] = useState<CreditCard | null>(null);
+
+  // Card Modal state
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
+  const [cardModalMode, setCardModalMode] = useState<"create" | "duplicate" | "edit">("create");
+  const [cardModalTarget, setCardModalTarget] = useState<CreditCard | null>(null);
 
   useEffect(() => {
     const loaded = getStoredCards();
@@ -47,17 +58,52 @@ export default function CardsPage() {
     setExpandedCardId(expandedCardId === id ? null : id);
   };
 
+  const handleOpenCreate = () => {
+    setCardModalMode("create");
+    setCardModalTarget(null);
+    setIsCardModalOpen(true);
+  };
+
+  const handleOpenDuplicate = (card: CreditCard) => {
+    setCardModalMode("duplicate");
+    setCardModalTarget(card);
+    setIsCardModalOpen(true);
+  };
+
+  const handleOpenEdit = (card: CreditCard) => {
+    setCardModalMode("edit");
+    setCardModalTarget(card);
+    setIsCardModalOpen(true);
+  };
+
+  const handleDeleteCard = (card: CreditCard) => {
+    if (confirm(`Bạn có chắc chắn muốn xóa thẻ "${card.name}${card.cardholderName ? ` (${card.cardholderName})` : ""}" khỏi danh mục quản lý không?`)) {
+      const updated = deleteCard(card.id);
+      setCards(updated);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="border-b border-white/10 pb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/20 mb-2">
-          <Layers className="w-3.5 h-3.5" /> Danh mục Thẻ Tín Dụng & Chính sách Hoàn tiền Chuẩn
+      <div className="border-b border-white/10 pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/20 mb-2">
+            <Layers className="w-3.5 h-3.5" /> Quản lý Danh mục Thẻ Tín Dụng & Chính sách Hoàn tiền
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black text-white">Chính sách & Danh mục Thẻ</h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Theo dõi tỷ lệ hoàn tiền, hạn mức kỳ & danh mục, quy tắc MCC và dễ dàng thêm thẻ mới / nhân bản thẻ cùng dòng khác chủ thẻ.
+          </p>
         </div>
-        <h1 className="text-2xl sm:text-4xl font-black text-white">Chính sách & Danh mục MCC</h1>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Dữ liệu chi tiết về tỷ lệ hoàn tiền/tích điểm, hạn mức kỳ & danh mục, mốc chi tiêu tối ưu và danh sách mã MCC áp dụng cho từng dòng thẻ (VIB, Shinhan Bank...).
-        </p>
+
+        <button
+          onClick={handleOpenCreate}
+          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/25 transition-all hover:scale-[1.03] shrink-0"
+        >
+          <Plus className="w-5 h-5" />
+          Thêm thẻ tín dụng mới
+        </button>
       </div>
 
       {/* Cards Grid */}
@@ -85,6 +131,16 @@ export default function CardsPage() {
                       <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
                         {card.bank}
                       </span>
+                      {card.cardholderName && (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1">
+                          <User className="w-3 h-3" /> Chủ thẻ: {card.cardholderName}
+                        </span>
+                      )}
+                      {card.isCustom && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30">
+                          Thẻ tùy chỉnh
+                        </span>
+                      )}
                       {card.hasPreviousCycleTier && (
                         <span className="text-[11px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-semibold border border-sky-500/30">
                           Tỷ lệ theo kỳ trước
@@ -125,23 +181,54 @@ export default function CardsPage() {
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex sm:flex-col items-center sm:items-end justify-between w-full lg:w-auto gap-3 shrink-0">
-                  <button
-                    onClick={() => setActiveTxCard(card)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02]"
-                  >
-                    <PlusCircle className="w-4 h-4" />
-                    Quẹt thẻ này
-                  </button>
+                {/* Actions Grid */}
+                <div className="flex flex-wrap lg:flex-col items-start lg:items-end justify-between w-full lg:w-auto gap-2.5 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveTxCard(card)}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02]"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      Quẹt thẻ
+                    </button>
 
-                  <button
-                    onClick={() => toggleExpand(card.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-white/5 transition-colors"
-                  >
-                    <span>{isExpanded ? "Thu gọn MCC" : `Xem chi tiết (${card.rules.length} quy tắc)`}</span>
-                    {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
+                    <button
+                      onClick={() => handleOpenDuplicate(card)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold text-xs border border-sky-500/30 transition-all"
+                      title="Tạo thêm 1 thẻ cùng dòng cho người khác đứng tên"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      Nhân bản (Khác chủ thẻ)
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleOpenEdit(card)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-white/5 transition-colors"
+                      title="Chỉnh sửa thông tin thẻ"
+                    >
+                      <Edit className="w-3.5 h-3.5 text-slate-400" />
+                      Sửa
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteCard(card)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-950/50 hover:text-rose-300 text-slate-400 text-xs font-semibold border border-white/5 transition-colors"
+                      title="Xóa thẻ khỏi danh mục"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                      Xóa
+                    </button>
+
+                    <button
+                      onClick={() => toggleExpand(card.id)}
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-white/5 transition-colors"
+                    >
+                      <span>{isExpanded ? "Thu gọn" : `MCC (${card.rules.length})`}</span>
+                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -238,6 +325,20 @@ export default function CardsPage() {
           }}
         />
       )}
+
+      {/* Card Management Modal (Create / Duplicate / Edit) */}
+      <CardModal
+        isOpen={isCardModalOpen}
+        onClose={() => {
+          setIsCardModalOpen(false);
+          setCardModalTarget(null);
+        }}
+        initialMode={cardModalMode}
+        initialCard={cardModalTarget}
+        onSuccess={() => {
+          setCards(getStoredCards());
+        }}
+      />
     </div>
   );
 }
