@@ -132,11 +132,6 @@ export default function CardsPage() {
                       <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
                         {card.bank}
                       </span>
-                      {card.isCustom && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30">
-                          Thẻ tùy chỉnh
-                        </span>
-                      )}
                       {card.hasPreviousCycleTier && (
                         <span className="text-[11px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-semibold border border-sky-500/30">
                           Tỷ lệ theo kỳ trước
