@@ -390,14 +390,8 @@ export default function CardModal({
   if (!isOpen || !mounted || typeof document === "undefined") return null;
 
   return createPortal(
-    <div
-      onClick={onClose}
-      className="fixed inset-0 z-[99999] overflow-y-auto bg-slate-950/98 backdrop-blur-2xl p-3 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-4xl rounded-3xl bg-slate-900 border border-amber-500/30 shadow-2xl p-5 sm:p-8 space-y-6 max-h-[88vh] overflow-y-auto my-auto"
-      >
+    <div className="fixed inset-0 z-[99999] overflow-y-auto bg-slate-950/98 backdrop-blur-2xl p-3 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">
+      <div className="w-full max-w-4xl rounded-3xl bg-slate-900 border border-amber-500/30 shadow-2xl p-5 sm:p-8 space-y-6 max-h-[88vh] overflow-y-auto my-auto">
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-3">
