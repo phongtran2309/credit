@@ -126,16 +126,12 @@ export default function CardsPage() {
 
                   {/* Summary Text */}
                   <div className="space-y-2">
+                    {/* Line 1: Tên thẻ & Ngân hàng & Tags */}
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-2xl font-black text-white">{card.name}</h3>
                       <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
                         {card.bank}
                       </span>
-                      {card.cardholderName && (
-                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 flex items-center gap-1">
-                          <User className="w-3 h-3" /> Chủ thẻ: {card.cardholderName}
-                        </span>
-                      )}
                       {card.isCustom && (
                         <span className="text-[11px] px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-semibold border border-purple-500/30">
                           Thẻ tùy chỉnh
@@ -147,6 +143,15 @@ export default function CardsPage() {
                         </span>
                       )}
                     </div>
+
+                    {/* Line 2: Tên chủ thẻ */}
+                    {card.cardholderName && (
+                      <div>
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 inline-flex items-center gap-1">
+                          <User className="w-3 h-3" /> Chủ thẻ: {card.cardholderName}
+                        </span>
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
                       <span className="flex items-center gap-1">

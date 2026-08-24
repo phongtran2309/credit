@@ -29,20 +29,26 @@ export default function StatementProgress({ summary }: StatementProgressProps) {
   return (
     <div className="p-6 rounded-3xl glass-panel border border-white/10 space-y-5 relative overflow-hidden">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 border-b border-white/10 pb-4">
+        <div className="space-y-1.5">
+          {/* Line 1: Tên loại thẻ & Tên ngân hàng */}
           <div className="flex items-center gap-2 flex-wrap">
             <h4 className="font-extrabold text-lg text-white">{card.name}</h4>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-amber-300 font-semibold border border-white/10">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-amber-300 font-semibold border border-white/10 shrink-0">
               {card.bank}
             </span>
-            {card.cardholderName && (
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+          </div>
+
+          {/* Line 2: Tên chủ thẻ (luôn ở dòng riêng biệt) */}
+          {card.cardholderName && (
+            <div>
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 inline-flex items-center">
                 Chủ thẻ: {card.cardholderName}
               </span>
-            )}
-          </div>
-          <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
+            </div>
+          )}
+
+          <p className="text-xs text-slate-400 pt-0.5 flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5 text-amber-400" />
             {cycleInfo.cycleLabel}
           </p>
