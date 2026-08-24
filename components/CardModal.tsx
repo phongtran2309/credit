@@ -242,10 +242,10 @@ export default function CardModal({
       maxCashbackPerMonth: Number(maxCashbackPerMonth) || 1000000,
       maxCashbackPerCategory: maxCashbackPerCategory !== "" ? Number(maxCashbackPerCategory) : undefined,
       defaultCashbackRate: Number(defaultCashbackRate) || 0.1,
-      imageUrl: imageUrl.trim() || undefined,
+      imageUrl: (imageUrl || "").trim() || undefined,
       colorGradient: color,
-      features: featuresText.split("\n").filter((line) => line.trim().length > 0),
-      rules,
+      features: (featuresText || "").split("\n").filter((line) => line.trim().length > 0),
+      rules: rules || [],
     };
   }, [
     mode,
@@ -271,7 +271,17 @@ export default function CardModal({
     rules,
   ]);
 
-  if (!isOpen) return null;
+  // Lock body scroll when modal is open (Top level Hook)
+  useEffect(() => {
+    if (isOpen && typeof document !== "undefined") {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.style.overflow = "unset";
+      }
+    };
+  }, [isOpen]);
 
   // Add a new cashback rule to state
   const handleAddRule = () => {
@@ -343,7 +353,7 @@ export default function CardModal({
       maxCashbackPerMonth: Number(maxCashbackPerMonth) || 1000000,
       maxCashbackPerCategory: maxCashbackPerCategory !== "" ? Number(maxCashbackPerCategory) : undefined,
       defaultCashbackRate: Number(defaultCashbackRate) || 0.1,
-      imageUrl: imageUrl.trim() || undefined,
+      imageUrl: (imageUrl || "").trim() || undefined,
       colorGradient: COLOR_PRESETS[colorPresetIndex] || COLOR_PRESETS[0],
       features: finalFeatures.length > 0 ? finalFeatures : [`Thẻ ${name.trim()} (${bank.trim()})`],
       rules: formattedRules,
@@ -360,15 +370,7 @@ export default function CardModal({
     onClose();
   };
 
-  // Lock body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-xl p-3 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">

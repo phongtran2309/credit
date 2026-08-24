@@ -191,6 +191,18 @@ export default function TransactionModal({
     };
   }, [selectedCard, matchedRec, isSavedCard, amount, cashbackRate, date, mccItem]);
 
+  // Lock body scroll when modal is open (Top level hook)
+  useEffect(() => {
+    if (isOpen && typeof document !== "undefined") {
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.style.overflow = "unset";
+      }
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const filteredMccResults = searchMccCodes(mccSearchQuery);
@@ -231,16 +243,6 @@ export default function TransactionModal({
     if (onSuccess) onSuccess();
     onClose();
   };
-
-  // Lock body scroll when modal is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpen]);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-xl p-4 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">
