@@ -245,7 +245,7 @@ export default function TransactionModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-xl p-4 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/98 backdrop-blur-2xl p-4 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">
       <div className="w-full max-w-lg rounded-3xl bg-slate-900 border border-amber-500/30 shadow-2xl p-6 md:p-8 space-y-5 max-h-[88vh] overflow-y-auto my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
