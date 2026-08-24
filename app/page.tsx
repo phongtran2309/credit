@@ -14,10 +14,8 @@ export default function HomePage() {
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  // Default to popular MCC: 6300 (Bảo hiểm) hoặc null khi tìm kiếm theo tính năng
-  const [selectedMcc, setSelectedMcc] = useState<MccItem | null>(
-    getMccByCode("6300") || ALL_MCC_ITEMS[0]
-  );
+  // Mặc định ban đầu để null (trống) để người dùng tự do gõ MCC hoặc chọn tính năng Online/Ngoại tệ
+  const [selectedMcc, setSelectedMcc] = useState<MccItem | null>(null);
   const [isOnline, setIsOnline] = useState<boolean>(false);
   const [isForeign, setIsForeign] = useState<boolean>(false);
   const [isSavedCard, setIsSavedCard] = useState<boolean>(false);
