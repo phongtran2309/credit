@@ -131,6 +131,7 @@ export function updateTransaction(id: string, updates: Partial<Transaction>): Tr
               mcc_code: targetTx.mccCode,
               amount: targetTx.amount,
               transaction_date: targetTx.transactionDate,
+              cashback_rate: targetTx.cashbackRate,
               cashback_amount: targetTx.cashbackAmount,
               note: targetTx.note || null,
             })
@@ -347,21 +348,35 @@ export async function syncTransactionsFromSupabase(): Promise<Transaction[] | nu
 
     if (error || !data) return null;
 
-    const txList: Transaction[] = data.map((d: any) => ({
-      id: d.id,
-      cardId: d.card_id,
-      mccCode: d.mcc_code || "",
-      mccName: d.note || `Giao dịch ${d.mcc_code || ""}`,
-      amount: Number(d.amount),
-      transactionDate: d.transaction_date,
-      cashbackRate: 0,
-      cashbackAmount: Number(d.cashback_amount || 0),
-      note: d.note || "",
-      isOnline: false,
-      isForeign: false,
-      isSavedCard: false,
-      createdAt: d.created_at || new Date().toISOString(),
-    }));
+    const txList: Transaction[] = data.map((d: any) => {
+      const amount = Number(d.amount || 0);
+      const cashbackAmount = Number(d.cashback_amount || 0);
+      let calculatedRate = Number(d.cashback_rate);
+
+      if (isNaN(calculatedRate) || calculatedRate <= 0) {
+        if (amount > 0 && cashbackAmount > 0) {
+          calculatedRate = Number(((cashbackAmount / amount) * 100).toFixed(2));
+        } else {
+          calculatedRate = 0;
+        }
+      }
+
+      return {
+        id: d.id,
+        cardId: d.card_id,
+        mccCode: d.mcc_code || "",
+        mccName: d.note || `Giao dịch ${d.mcc_code || ""}`,
+        amount,
+        transactionDate: d.transaction_date,
+        cashbackRate: calculatedRate,
+        cashbackAmount,
+        note: d.note || "",
+        isOnline: false,
+        isForeign: false,
+        isSavedCard: false,
+        createdAt: d.created_at || new Date().toISOString(),
+      };
+    });
 
     saveTransactions(txList);
     if (typeof window !== "undefined") {
@@ -394,6 +409,7 @@ async function syncTransactionToSupabase(tx: Transaction) {
       mcc_code: tx.mccCode,
       amount: tx.amount,
       transaction_date: tx.transactionDate,
+      cashback_rate: tx.cashbackRate,
       cashback_amount: tx.cashbackAmount,
       note: tx.note || null,
     });

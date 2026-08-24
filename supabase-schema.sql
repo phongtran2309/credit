@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     mcc_code VARCHAR(10),
     amount NUMERIC(12,2) NOT NULL,
     transaction_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    cashback_rate NUMERIC(5,2) DEFAULT 0,
     cashback_amount NUMERIC(12,2) DEFAULT 0,
     note TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

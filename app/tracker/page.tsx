@@ -305,9 +305,19 @@ export default function TrackerPage() {
                           <span className="font-bold text-emerald-400 block">
                             +{formatCurrencyVND(tx.cashbackAmount)}
                           </span>
-                          <span className="text-[10px] text-amber-400/80 font-semibold">
-                            ({tx.cashbackRate}%)
-                          </span>
+                          {(() => {
+                            const rate =
+                              tx.cashbackRate > 0
+                                ? tx.cashbackRate
+                                : tx.amount > 0 && tx.cashbackAmount > 0
+                                ? Number(((tx.cashbackAmount / tx.amount) * 100).toFixed(2))
+                                : 0;
+                            return (
+                              <span className="text-[10px] text-amber-400/80 font-semibold">
+                                ({rate}%)
+                              </span>
+                            );
+                          })()}
                         </td>
                         <td className="py-3 px-2 text-center">
                           <button
