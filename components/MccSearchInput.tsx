@@ -280,37 +280,55 @@ export default function MccSearchInput({
 
         {/* Conditions Toggles */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-white/5">
-          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-900/60 border border-white/5 hover:border-amber-500/30 cursor-pointer transition-all select-none">
+          <label
+            className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all select-none ${
+              isOnline
+                ? "bg-sky-500/20 border-sky-400 text-white font-semibold shadow-sm shadow-sky-500/20"
+                : "bg-slate-900/60 border-white/5 hover:border-sky-500/30 text-slate-400"
+            }`}
+          >
             <input
               type="checkbox"
               checked={isOnline}
               onChange={(e) => setIsOnline(e.target.checked)}
-              className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-slate-800 border-slate-700"
+              className="w-4 h-4 rounded text-sky-500 focus:ring-sky-400 bg-slate-800 border-slate-700"
             />
-            <Globe className="w-4 h-4 text-sky-400 shrink-0" />
-            <span className="text-xs text-slate-300 font-medium">Chi tiêu Trực tuyến (Online)</span>
+            <Globe className={`w-4 h-4 shrink-0 ${isOnline ? "text-sky-300" : "text-slate-400"}`} />
+            <span className="text-xs">Chi tiêu Trực tuyến (Online)</span>
           </label>
 
-          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-900/60 border border-white/5 hover:border-amber-500/30 cursor-pointer transition-all select-none">
+          <label
+            className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all select-none ${
+              isForeign
+                ? "bg-emerald-500/20 border-emerald-400 text-white font-semibold shadow-sm shadow-emerald-500/20"
+                : "bg-slate-900/60 border-white/5 hover:border-emerald-500/30 text-slate-400"
+            }`}
+          >
             <input
               type="checkbox"
               checked={isForeign}
               onChange={(e) => setIsForeign(e.target.checked)}
-              className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-slate-800 border-slate-700"
+              className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-400 bg-slate-800 border-slate-700"
             />
-            <Tag className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="text-xs text-slate-300 font-medium">Ngoại tệ / Quốc tế (Online & POS)</span>
+            <Tag className={`w-4 h-4 shrink-0 ${isForeign ? "text-emerald-300" : "text-slate-400"}`} />
+            <span className="text-xs">Ngoại tệ / Quốc tế</span>
           </label>
 
-          <label className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-900/60 border border-white/5 hover:border-amber-500/30 cursor-pointer transition-all select-none">
+          <label
+            className={`flex items-center gap-2.5 p-2.5 rounded-xl border cursor-pointer transition-all select-none ${
+              isSavedCard
+                ? "bg-purple-500/20 border-purple-400 text-white font-semibold shadow-sm shadow-purple-500/20"
+                : "bg-slate-900/60 border-white/5 hover:border-purple-500/30 text-slate-400"
+            }`}
+          >
             <input
               type="checkbox"
               checked={isSavedCard}
               onChange={(e) => setIsSavedCard(e.target.checked)}
-              className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-slate-800 border-slate-700"
+              className="w-4 h-4 rounded text-purple-500 focus:ring-purple-400 bg-slate-800 border-slate-700"
             />
-            <BookmarkCheck className="w-4 h-4 text-purple-400 shrink-0" />
-            <span className="text-xs text-slate-300 font-medium">Đã lưu thẻ (Grab, Spotify, Netflix...)</span>
+            <BookmarkCheck className={`w-4 h-4 shrink-0 ${isSavedCard ? "text-purple-300" : "text-slate-400"}`} />
+            <span className="text-xs">Đã lưu thẻ (Grab, Spotify...)</span>
           </label>
         </div>
       </div>

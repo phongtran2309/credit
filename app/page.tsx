@@ -14,9 +14,9 @@ export default function HomePage() {
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-  // Mặc định ban đầu để null (trống) để người dùng tự do gõ MCC hoặc chọn tính năng Online/Ngoại tệ
+  // Mặc định ban đầu không chọn MCC cụ thể, mặc định chọn tính năng 'Chi tiêu Online' (1 trong 3 tính năng cơ bản)
   const [selectedMcc, setSelectedMcc] = useState<MccItem | null>(null);
-  const [isOnline, setIsOnline] = useState<boolean>(false);
+  const [isOnline, setIsOnline] = useState<boolean>(true);
   const [isForeign, setIsForeign] = useState<boolean>(false);
   const [isSavedCard, setIsSavedCard] = useState<boolean>(false);
   const [spendAmount, setSpendAmount] = useState<number>(2000000);
