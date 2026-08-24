@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   CreditCard as CardIcon,
@@ -114,6 +115,11 @@ export default function CardModal({
 }: CardModalProps) {
   const [mode, setMode] = useState<"create" | "duplicate" | "edit">(initialMode);
   const [existingCards, setExistingCards] = useState<CreditCard[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Duplicate mode states
   const [cloneSourceId, setCloneSourceId] = useState<string>("");
@@ -370,10 +376,10 @@ export default function CardModal({
     onClose();
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted || typeof document === "undefined") return null;
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/98 backdrop-blur-2xl p-3 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] overflow-y-auto bg-slate-950/98 backdrop-blur-2xl p-3 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">
       <div className="w-full max-w-4xl rounded-3xl bg-slate-900 border border-amber-500/30 shadow-2xl p-5 sm:p-8 space-y-6 max-h-[88vh] overflow-y-auto my-auto">
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -946,6 +952,7 @@ export default function CardModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

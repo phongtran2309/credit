@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { X, CreditCard as CardIcon, Tag, Calendar, DollarSign, Sparkles, Check, Search, ChevronDown, AlertTriangle } from "lucide-react";
 import { getStoredCards, getStoredTransactions, addTransaction } from "@/lib/storage";
 import { searchMccCodes, getMccByCode } from "@/lib/data/mcc-database";
@@ -41,6 +42,11 @@ export default function TransactionModal({
   defaultCashbackRate,
 }: TransactionModalProps) {
   const [cards, setCards] = useState<CreditCard[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [selectedCardId, setSelectedCardId] = useState<string>(defaultCardId || "");
   const [mccCode, setMccCode] = useState<string>(defaultMccCode || "");
   const [mccName, setMccName] = useState<string>(defaultMccName || "");
@@ -244,8 +250,10 @@ export default function TransactionModal({
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/98 backdrop-blur-2xl p-4 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">
+  if (!isOpen || !mounted || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] overflow-y-auto bg-slate-950/98 backdrop-blur-2xl p-4 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">
       <div className="w-full max-w-lg rounded-3xl bg-slate-900 border border-amber-500/30 shadow-2xl p-6 md:p-8 space-y-5 max-h-[88vh] overflow-y-auto my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -541,6 +549,7 @@ export default function TransactionModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
