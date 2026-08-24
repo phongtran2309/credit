@@ -4,9 +4,9 @@ import Navbar from "@/components/Navbar";
 import SupabaseSyncProvider from "@/components/SupabaseSyncProvider";
 
 export const metadata: Metadata = {
-  title: "MCC Cashback & Credit Card Spending Tracker | VIB Pro",
+  title: "MCC Cashback & Credit Card Spending Tracker",
   description:
-    "Hệ thống tra cứu mã danh mục MCC thông minh và quản lý chu kỳ sao kê thẻ tín dụng VIB, tối ưu hoàn tiền cao nhất.",
+    "Hệ thống tra cứu mã danh mục MCC thông minh và quản lý chu kỳ sao kê thẻ tín dụng, tối ưu hoàn tiền cao nhất.",
 };
 
 export default function RootLayout({
@@ -26,14 +26,10 @@ export default function RootLayout({
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
               <p className="font-semibold text-slate-300">
-                💳 MCC Cashback & Spending Tracker • VIB Pro Edition
+                💳 MCC Cashback & Spending Tracker • Pro Edition
               </p>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Dữ liệu chính sách thẻ VIB Max Card, Super Card, Online Plus 2in1, Family Link, Cash Back
-              </p>
-            </div>
-            <div className="text-slate-500 text-[11px]">
-              Tối ưu hoàn tiền • Không lo chạm trần • Quản lý chu kỳ sao kê
+                Tối ưu hoàn tiền • Không lo chạm trần • Quản lý chu kỳ sao kê              </p>
             </div>
           </div>
         </footer>

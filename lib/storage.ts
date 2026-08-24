@@ -248,9 +248,15 @@ export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
 
             if (matchedDbRule) {
               const newRate = Number(matchedDbRule.cashback_rate);
+              const effectiveRate = !isNaN(newRate) ? newRate : rule.cashbackRate;
+              const rawNote = matchedDbRule.note || rule.note || "";
+              const formattedNote = rawNote
+                ? rawNote.replace(/Hoàn \d+(\.\d+)?%/gi, `Hoàn ${effectiveRate}%`)
+                : `Hoàn ${effectiveRate}% cho danh mục ${rule.category}`;
+
               return {
                 ...rule,
-                cashbackRate: !isNaN(newRate) ? newRate : rule.cashbackRate,
+                cashbackRate: effectiveRate,
                 minSpendRequired:
                   matchedDbRule.min_spend_required !== null && matchedDbRule.min_spend_required !== undefined
                     ? Number(matchedDbRule.min_spend_required)
@@ -259,7 +265,7 @@ export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
                   matchedDbRule.max_cashback_per_category !== null && matchedDbRule.max_cashback_per_category !== undefined
                     ? Number(matchedDbRule.max_cashback_per_category)
                     : rule.maxCashbackPerCategory,
-                note: matchedDbRule.note || rule.note,
+                note: formattedNote,
               };
             }
             return rule;

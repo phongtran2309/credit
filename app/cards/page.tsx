@@ -111,12 +111,16 @@ export default function CardsPage() {
 
                     {/* Features list */}
                     <div className="space-y-1 pt-1">
-                      {card.features.map((feat, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-xs text-slate-300">
-                          <CheckCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                          <span>{feat}</span>
-                        </div>
-                      ))}
+                      {card.features.map((feat, idx) => {
+                        const maxRuleRate = Math.max(...card.rules.map((r) => r.cashbackRate), card.defaultCashbackRate);
+                        const displayFeat = feat.replace(/Hoàn tiền \d+% cho danh mục/gi, `Hoàn tiền ${maxRuleRate}% cho danh mục`);
+                        return (
+                          <div key={idx} className="flex items-center gap-2 text-xs text-slate-300">
+                            <CheckCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            <span>{displayFeat}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -150,41 +154,46 @@ export default function CardsPage() {
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {card.rules.map((rule, rIdx) => (
-                      <div
-                        key={rIdx}
-                        className="p-4 rounded-2xl bg-slate-900/80 border border-white/5 space-y-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-white text-sm">{rule.category}</span>
-                          <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-extrabold text-sm border border-amber-500/30">
-                            {rule.tierRates ? "Hoàn 5% - 10%" : `Hoàn ${rule.cashbackRate}%`}
-                          </span>
-                        </div>
+                    {card.rules.map((rule, rIdx) => {
+                      const displayNote = rule.note
+                        ? rule.note.replace(/Hoàn \d+(\.\d+)?%/gi, `Hoàn ${rule.cashbackRate}%`)
+                        : `Hoàn ${rule.cashbackRate}% cho danh mục ${rule.category}`;
 
-                        {rule.tierRates && (
-                          <div className="p-2.5 rounded-xl bg-slate-950/60 border border-white/5 text-[11px] space-y-1">
-                            <span className="font-semibold text-slate-300 block">Tỷ lệ theo tổng chi tiêu kỳ liền trước:</span>
-                            <div className="grid grid-cols-3 gap-1 text-center font-medium">
-                              <div className="p-1 rounded bg-slate-800 text-slate-300">
-                                ≤50Tr: <strong className="text-amber-400 font-bold">{rule.tierRates.tier1}%</strong>
-                              </div>
-                              <div className="p-1 rounded bg-slate-800 text-slate-300">
-                                50-100Tr: <strong className="text-amber-400 font-bold">{rule.tierRates.tier2}%</strong>
-                              </div>
-                              <div className="p-1 rounded bg-slate-800 text-slate-300">
-                                &gt;100Tr: <strong className="text-amber-400 font-bold">{rule.tierRates.tier3}%</strong>
+                      return (
+                        <div
+                          key={rIdx}
+                          className="p-4 rounded-2xl bg-slate-900/80 border border-white/5 space-y-3"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-white text-sm">{rule.category}</span>
+                            <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-extrabold text-sm border border-amber-500/30">
+                              {rule.tierRates ? "Hoàn 5% - 10%" : `Hoàn ${rule.cashbackRate}%`}
+                            </span>
+                          </div>
+
+                          {rule.tierRates && (
+                            <div className="p-2.5 rounded-xl bg-slate-950/60 border border-white/5 text-[11px] space-y-1">
+                              <span className="font-semibold text-slate-300 block">Tỷ lệ theo tổng chi tiêu kỳ liền trước:</span>
+                              <div className="grid grid-cols-3 gap-1 text-center font-medium">
+                                <div className="p-1 rounded bg-slate-800 text-slate-300">
+                                  ≤50Tr: <strong className="text-amber-400 font-bold">{rule.tierRates.tier1}%</strong>
+                                </div>
+                                <div className="p-1 rounded bg-slate-800 text-slate-300">
+                                  50-100Tr: <strong className="text-amber-400 font-bold">{rule.tierRates.tier2}%</strong>
+                                </div>
+                                <div className="p-1 rounded bg-slate-800 text-slate-300">
+                                  &gt;100Tr: <strong className="text-amber-400 font-bold">{rule.tierRates.tier3}%</strong>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {rule.note && (
-                          <p className="text-xs text-slate-400 flex items-start gap-1">
-                            <Info className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                            <span>{rule.note}</span>
-                          </p>
-                        )}
+                          {displayNote && (
+                            <p className="text-xs text-slate-400 flex items-start gap-1">
+                              <Info className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                              <span>{displayNote}</span>
+                            </p>
+                          )}
 
                         {/* MCC codes tags */}
                         {rule.mccCodes && rule.mccCodes.length > 0 && (
