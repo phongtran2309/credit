@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { CreditCard } from "@/types";
 import { Wifi, Sparkles } from "lucide-react";
 
@@ -9,6 +10,27 @@ interface CreditCardVisualProps {
 }
 
 export default function CreditCardVisual({ card, compact = false }: CreditCardVisualProps) {
+  const [imageError, setImageError] = useState(false);
+
+  if (card.imageUrl && !imageError) {
+    return (
+      <div
+        className={`relative overflow-hidden rounded-2xl border border-white/10 shadow-2xl transition-all hover:scale-[1.02] duration-300 ${
+          compact ? "w-full aspect-[1.58/1]" : "w-full max-w-sm aspect-[1.58/1]"
+        } select-none group bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-1`}
+      >
+        <img
+          src={card.imageUrl}
+          alt={card.name}
+          onError={() => setImageError(true)}
+          className="w-full h-full object-contain object-center drop-shadow-2xl rounded-xl"
+        />
+        {/* Subtle shine on hover */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl" />
+      </div>
+    );
+  }
+
   return (
     <div
       className={`card-shine rounded-2xl p-5 relative overflow-hidden bg-gradient-to-br ${card.colorGradient.from} ${card.colorGradient.to} border ${card.colorGradient.border} shadow-2xl transition-all hover:scale-[1.02] duration-300 ${

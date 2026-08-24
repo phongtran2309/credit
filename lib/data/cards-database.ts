@@ -30,6 +30,7 @@ export const DEFAULT_CARDS: CreditCard[] = [
       accent: "bg-amber-400",
       border: "border-amber-500/30",
     },
+    imageUrl: "https://rcgv.vn/wp-content/uploads/2026/04/vib-super-card-american-express-platinum.png",
     features: [
       "Hoàn tiền 15% cho danh mục chi tiêu tự chọn",
       "Mốc chi tiêu tối ưu: ~6.670.000 VNĐ/kỳ (3.33tr x 2 danh mục) để ăn trọn max 1tr hoàn tiền",

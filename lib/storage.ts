@@ -165,7 +165,7 @@ export function deleteTransaction(id: string): Transaction[] {
   return updated;
 }
 
-export const CURRENT_DATA_VERSION = "v2.4_shinhan_statement_25";
+export const CURRENT_DATA_VERSION = "v2.5_card_images_support";
 
 export function getStoredCards(): CreditCard[] {
   if (typeof window === "undefined") return DEFAULT_CARDS;
@@ -283,6 +283,7 @@ export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
           name: dbCard.name ?? c.name,
           bank: dbCard.bank ?? c.bank,
           defaultCashbackRate: dbCard.default_cashback_rate ?? c.defaultCashbackRate,
+          imageUrl: dbCard.image_url ?? c.imageUrl,
           rules: updatedRules,
         };
       }
