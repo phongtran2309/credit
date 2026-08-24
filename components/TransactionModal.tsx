@@ -283,12 +283,14 @@ export default function TransactionModal({
                 Số tiền chi tiêu (VNĐ):
               </label>
               <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value === "" ? "" : Number(e.target.value))}
-                placeholder="Nhập số tiền chi tiêu..."
-                step="any"
-                min="0"
+                type="text"
+                inputMode="numeric"
+                value={amount !== "" && amount !== undefined ? Number(amount).toLocaleString("vi-VN") : ""}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/\D/g, "");
+                  setAmount(rawValue === "" ? "" : Number(rawValue));
+                }}
+                placeholder="VD: 16.000.000"
                 required
                 className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-white/10 text-amber-300 font-bold text-base focus:border-amber-400 focus:outline-none placeholder:text-slate-500 placeholder:font-normal"
               />
