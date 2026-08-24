@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS cards (
     max_cashback_per_month NUMERIC(12,2), -- Hạn mức hoàn tiền tối đa/kỳ
     max_cashback_per_category NUMERIC(12,2), -- Hạn mức tối đa / 1 danh mục / kỳ (500k)
     default_cashback_rate NUMERIC(5,2) DEFAULT 0.1,
-    image_url TEXT,                       -- Link ảnh phôi thẻ
+    image TEXT,                           -- Link ảnh phôi thẻ
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS transactions (
 -- SEED DATA: DỮ LIỆU CÁC DÒNG THẺ VIB & SHINHAN
 -- ====================================================================
 
-INSERT INTO cards (id, name, bank, statement_day, due_day, max_cashback_per_month, max_cashback_per_category, default_cashback_rate, image_url) VALUES
+INSERT INTO cards (id, name, bank, statement_day, due_day, max_cashback_per_month, max_cashback_per_category, default_cashback_rate, image) VALUES
 ('vib-super-card', 'VIB Super Card', 'VIB', 27, 21, 1000000, 500000, 0.1, 'https://rcgv.vn/wp-content/uploads/2026/04/vib-super-card-american-express-platinum.png'),
 ('vib-family-link', 'VIB Family Link', 'VIB', 27, 21, 1000000, 500000, 0.1, NULL),
 ('vib-online-plus-2in1', 'VIB Online Plus 2in1', 'VIB', 27, 21, 600000, NULL, 0.1, NULL),
@@ -69,7 +69,7 @@ ON CONFLICT (id) DO UPDATE SET
     due_day = EXCLUDED.due_day,
     max_cashback_per_month = EXCLUDED.max_cashback_per_month,
     max_cashback_per_category = EXCLUDED.max_cashback_per_category,
-    image_url = COALESCE(EXCLUDED.image_url, cards.image_url);
+    image = COALESCE(EXCLUDED.image, cards.image);
 
 -- ====================================================================
 -- SEED DATA: CHÈN TOÀN BỘ 748 MÃ MCC TỪ VIB-CARD.JSON

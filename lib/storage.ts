@@ -283,7 +283,7 @@ export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
           name: dbCard.name ?? c.name,
           bank: dbCard.bank ?? c.bank,
           defaultCashbackRate: dbCard.default_cashback_rate ?? c.defaultCashbackRate,
-          imageUrl: dbCard.image_url ?? c.imageUrl,
+          imageUrl: dbCard.image ?? dbCard.image_url ?? c.imageUrl,
           rules: updatedRules,
         };
       }
