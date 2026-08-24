@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import SupabaseSyncProvider from "@/components/SupabaseSyncProvider";
 
 export const metadata: Metadata = {
   title: "MCC Cashback & Credit Card Spending Tracker | VIB Pro",
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="vi" className="dark">
       <body className="antialiased min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950">
+        <SupabaseSyncProvider />
         <Navbar />
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
           {children}

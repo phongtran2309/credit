@@ -480,19 +480,43 @@ function buildFullMccDatabase(): MccItem[] {
 
 export const ALL_MCC_ITEMS: MccItem[] = buildFullMccDatabase();
 
+let dynamicMccItems: MccItem[] = ALL_MCC_ITEMS;
+
+export function setDynamicMccItems(items: MccItem[]): void {
+  dynamicMccItems = items;
+}
+
+export function getAllMccItems(): MccItem[] {
+  if (typeof window !== "undefined") {
+    try {
+      const cached = localStorage.getItem("mcc_custom_codes");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  }
+  return dynamicMccItems;
+}
+
 // Fast search function supporting MCC code, Vietnamese query, Category, Brand name
 export function searchMccCodes(query: string): MccItem[] {
+  const items = getAllMccItems();
   const cleanQuery = query.trim().toLowerCase();
-  if (!cleanQuery) return ALL_MCC_ITEMS.slice(0, 30);
+  if (!cleanQuery) return items.slice(0, 30);
 
   // Exact code match prioritized
-  const exactCode = ALL_MCC_ITEMS.find((item) => item.code === cleanQuery);
+  const exactCode = items.find((item) => item.code === cleanQuery);
   if (exactCode) {
-    return [exactCode, ...ALL_MCC_ITEMS.filter((i) => i.code !== cleanQuery && i.code.startsWith(cleanQuery))];
+    return [exactCode, ...items.filter((i) => i.code !== cleanQuery && i.code.startsWith(cleanQuery))];
   }
 
   // Search by code prefix, name, category, brand, description
-  return ALL_MCC_ITEMS.filter((item) => {
+  return items.filter((item) => {
     if (item.code.includes(cleanQuery)) return true;
     if (item.name.toLowerCase().includes(cleanQuery)) return true;
     if (item.category.toLowerCase().includes(cleanQuery)) return true;
@@ -503,5 +527,6 @@ export function searchMccCodes(query: string): MccItem[] {
 }
 
 export function getMccByCode(code: string): MccItem | undefined {
-  return ALL_MCC_ITEMS.find((item) => item.code === code);
+  const items = getAllMccItems();
+  return items.find((item) => item.code === code);
 }

@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import MccSearchInput from "@/components/MccSearchInput";
 import CardRecommendation from "@/components/CardRecommendation";
 import { getMccByCode, ALL_MCC_ITEMS } from "@/lib/data/mcc-database";
 import { getRecommendedCardsForMcc } from "@/lib/data/cards-database";
-import { MccItem, PreviousSpendTier } from "@/types";
+import { getStoredCards, syncCardsFromSupabase } from "@/lib/storage";
+import { MccItem, PreviousSpendTier, CreditCard } from "@/types";
 import { Sparkles, ShieldCheck, TrendingUp, ArrowRight, Award } from "lucide-react";
 import Link from "next/link";
 
 export default function HomePage() {
+  const [cards, setCards] = useState<CreditCard[]>([]);
+
   // Default to popular MCC: 6300 (Bảo hiểm) hoặc 5812 (Ẩm thực)
   const [selectedMcc, setSelectedMcc] = useState<MccItem>(
     getMccByCode("6300") || ALL_MCC_ITEMS[0]
@@ -20,17 +23,33 @@ export default function HomePage() {
   const [spendAmount, setSpendAmount] = useState<number>(2000000);
   const [previousSpendTier, setPreviousSpendTier] = useState<PreviousSpendTier>("tier1"); // Default: <= 50tr
 
+  useEffect(() => {
+    setCards(getStoredCards());
+
+    syncCardsFromSupabase().then((synced) => {
+      if (synced) setCards(synced);
+    });
+
+    const handleUpdate = () => setCards(getStoredCards());
+    window.addEventListener("cards_updated", handleUpdate);
+    return () => window.removeEventListener("cards_updated", handleUpdate);
+  }, []);
+
   // Compute recommendations dynamically with previous statement spend tier
   const recommendations = useMemo(() => {
     if (!selectedMcc) return [];
-    return getRecommendedCardsForMcc(selectedMcc, {
-      isOnline,
-      isForeign,
-      isSavedCard,
-      amount: spendAmount,
-      previousSpendTier,
-    });
-  }, [selectedMcc, isOnline, isForeign, isSavedCard, spendAmount, previousSpendTier]);
+    return getRecommendedCardsForMcc(
+      selectedMcc,
+      {
+        isOnline,
+        isForeign,
+        isSavedCard,
+        amount: spendAmount,
+        previousSpendTier,
+      },
+      cards.length > 0 ? cards : undefined
+    );
+  }, [selectedMcc, isOnline, isForeign, isSavedCard, spendAmount, previousSpendTier, cards]);
 
   return (
     <div className="space-y-8">

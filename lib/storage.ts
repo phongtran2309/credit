@@ -116,6 +116,28 @@ export function updateTransaction(id: string, updates: Partial<Transaction>): Tr
   const transactions = getStoredTransactions();
   const updated = transactions.map((tx) => (tx.id === id ? { ...tx, ...updates } : tx));
   saveTransactions(updated);
+
+  // Sync update to Supabase in background
+  const client = getSupabaseClient();
+  if (client) {
+    const targetTx = updated.find((t) => t.id === id);
+    if (targetTx) {
+      client
+        .from("transactions")
+        .update({
+          card_id: targetTx.cardId,
+          mcc_code: targetTx.mccCode,
+          amount: targetTx.amount,
+          transaction_date: targetTx.transactionDate,
+          cashback_amount: targetTx.cashbackAmount,
+          note: targetTx.note || null,
+        })
+        .eq("id", id)
+        .then(() => {})
+        .catch((e) => console.warn("Lỗi cập nhật giao dịch lên Supabase:", e));
+    }
+  }
+
   return updated;
 }
 
@@ -123,6 +145,18 @@ export function deleteTransaction(id: string): Transaction[] {
   const transactions = getStoredTransactions();
   const updated = transactions.filter((tx) => tx.id !== id);
   saveTransactions(updated);
+
+  // Sync delete to Supabase in background
+  const client = getSupabaseClient();
+  if (client) {
+    client
+      .from("transactions")
+      .delete()
+      .eq("id", id)
+      .then(() => {})
+      .catch((e) => console.warn("Lỗi xóa giao dịch trên Supabase:", e));
+  }
+
   return updated;
 }
 
@@ -171,18 +205,63 @@ export function resetToDefaults(): void {
   localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(DEFAULT_CARDS));
 }
 
-// Background Supabase Sync Helpers
+// Background Supabase Sync Helpers for cards & cashback_rules
 export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
   const client = getSupabaseClient();
   if (!client) return null;
 
   try {
-    const { data, error } = await client.from("cards").select("*");
-    if (error || !data || data.length === 0) return null;
+    const [cardsRes, rulesRes] = await Promise.all([
+      client.from("cards").select("*"),
+      client.from("cashback_rules").select("*"),
+    ]);
+
+    const cardsData = cardsRes.data;
+    const rulesData = rulesRes.data;
+
+    if ((!cardsData || cardsData.length === 0) && (!rulesData || rulesData.length === 0)) {
+      return null;
+    }
 
     const currentCards = getStoredCards();
     const updated = currentCards.map((c) => {
-      const dbCard = data.find((d: any) => d.id === c.id);
+      const dbCard = cardsData?.find((d: any) => d.id === c.id);
+
+      // Update rules from Supabase cashback_rules if available
+      let updatedRules = [...c.rules];
+      if (rulesData && rulesData.length > 0) {
+        const cardRules = rulesData.filter((r: any) => r.card_id === c.id);
+        if (cardRules.length > 0) {
+          updatedRules = updatedRules.map((rule) => {
+            // Match rule by category_name
+            const matchedDbRule = cardRules.find((r: any) => {
+              if (!r.category_name || !rule.category) return false;
+              const rCat = r.category_name.trim().toLowerCase();
+              const ruleCat = rule.category.trim().toLowerCase();
+              return rCat === ruleCat || rCat.includes(ruleCat) || ruleCat.includes(rCat);
+            });
+
+            if (matchedDbRule) {
+              const newRate = Number(matchedDbRule.cashback_rate);
+              return {
+                ...rule,
+                cashbackRate: !isNaN(newRate) ? newRate : rule.cashbackRate,
+                minSpendRequired:
+                  matchedDbRule.min_spend_required !== null && matchedDbRule.min_spend_required !== undefined
+                    ? Number(matchedDbRule.min_spend_required)
+                    : rule.minSpendRequired,
+                maxCashbackPerCategory:
+                  matchedDbRule.max_cashback_per_category !== null && matchedDbRule.max_cashback_per_category !== undefined
+                    ? Number(matchedDbRule.max_cashback_per_category)
+                    : rule.maxCashbackPerCategory,
+                note: matchedDbRule.note || rule.note,
+              };
+            }
+            return rule;
+          });
+        }
+      }
+
       if (dbCard) {
         return {
           ...c,
@@ -192,9 +271,15 @@ export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
           maxCashbackPerCategory: dbCard.max_cashback_per_category ?? c.maxCashbackPerCategory,
           name: dbCard.name ?? c.name,
           bank: dbCard.bank ?? c.bank,
+          defaultCashbackRate: dbCard.default_cashback_rate ?? c.defaultCashbackRate,
+          rules: updatedRules,
         };
       }
-      return c;
+
+      return {
+        ...c,
+        rules: updatedRules,
+      };
     });
 
     saveCards(updated);
@@ -206,6 +291,84 @@ export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
     console.warn("Lỗi sync cards từ Supabase:", e);
     return null;
   }
+}
+
+// Background Supabase Sync Helpers for mcc_codes
+export async function syncMccCodesFromSupabase(): Promise<any[] | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client.from("mcc_codes").select("*");
+    if (error || !data || data.length === 0) return null;
+
+    const mccList = data.map((d: any) => ({
+      code: String(d.code),
+      category: d.category_name || "Khác",
+      name: d.name || `Mã ${d.code}`,
+      description: d.description || "",
+      popularBrands: [],
+      isOnlineEligible: true,
+    }));
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("mcc_custom_codes", JSON.stringify(mccList));
+      window.dispatchEvent(new Event("mcc_updated"));
+    }
+    return mccList;
+  } catch (e) {
+    console.warn("Lỗi sync MCC codes từ Supabase:", e);
+    return null;
+  }
+}
+
+// Background Supabase Sync Helpers for transactions
+export async function syncTransactionsFromSupabase(): Promise<Transaction[] | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client
+      .from("transactions")
+      .select("*")
+      .order("transaction_date", { ascending: false });
+
+    if (error || !data) return null;
+
+    const txList: Transaction[] = data.map((d: any) => ({
+      id: d.id,
+      cardId: d.card_id,
+      mccCode: d.mcc_code || "",
+      mccName: d.note || `Giao dịch ${d.mcc_code || ""}`,
+      amount: Number(d.amount),
+      transactionDate: d.transaction_date,
+      cashbackRate: 0,
+      cashbackAmount: Number(d.cashback_amount || 0),
+      note: d.note || "",
+      isOnline: false,
+      isForeign: false,
+      isSavedCard: false,
+      createdAt: d.created_at || new Date().toISOString(),
+    }));
+
+    saveTransactions(txList);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("transaction_updated"));
+    }
+    return txList;
+  } catch (e) {
+    console.warn("Lỗi sync transactions từ Supabase:", e);
+    return null;
+  }
+}
+
+// Master sync function for all 4 tables
+export async function syncAllDataFromSupabase(): Promise<void> {
+  await Promise.allSettled([
+    syncCardsFromSupabase(),
+    syncMccCodesFromSupabase(),
+    syncTransactionsFromSupabase(),
+  ]);
 }
 
 async function syncTransactionToSupabase(tx: Transaction) {
