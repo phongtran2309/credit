@@ -1,14 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { CreditCard, Search, PieChart, Layers, Settings, PlusCircle, Sparkles } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  CreditCard,
+  Search,
+  PieChart,
+  Layers,
+  Settings,
+  PlusCircle,
+  Sparkles,
+  LogOut,
+} from "lucide-react";
 import { useState } from "react";
 import TransactionModal from "@/components/TransactionModal";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  // Nếu đang ở trang đăng nhập, không hiển thị menu điều hướng nội bộ
+  const isLoginPage = pathname === "/login";
 
   const navItems = [
     { name: "Tra cứu MCC", href: "/", icon: Search },
@@ -16,6 +30,21 @@ export default function Navbar() {
     { name: "Danh mục Thẻ", href: "/cards", icon: Layers },
     { name: "Cài đặt & Sync", href: "/settings", icon: Settings },
   ];
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch (err) {
+      console.error("Lỗi đăng xuất:", err);
+      window.location.href = "/login";
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   return (
     <>
@@ -39,8 +68,62 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Nav links desktop */}
-          <nav className="hidden md:flex items-center gap-1">
+          {!isLoginPage && (
+            <>
+              {/* Nav links desktop */}
+              <nav className="hidden md:flex items-center gap-1">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                        isActive
+                          ? "bg-white/10 text-amber-300 shadow-sm border border-white/10"
+                          : "text-slate-300 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      <Icon
+                        className={`w-4 h-4 ${
+                          isActive ? "text-amber-400" : "text-slate-400"
+                        }`}
+                      />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              {/* Action buttons */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-sm font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <PlusCircle className="w-4 h-4 text-slate-950" />
+                  <span className="hidden sm:inline">Ghi nhận giao dịch</span>
+                  <span className="sm:hidden">Thêm</span>
+                </button>
+
+                {/* Logout / Lock Button */}
+                <button
+                  onClick={handleLogout}
+                  title="Khóa phiên & Đăng xuất an toàn"
+                  disabled={loggingOut}
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Mobile Nav Bar at Bottom */}
+        {!isLoginPage && (
+          <div className="md:hidden flex items-center justify-around border-t border-white/5 py-2 px-2 bg-slate-950/80 backdrop-blur-md">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -48,55 +131,21 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? "bg-white/10 text-amber-300 shadow-sm border border-white/10"
-                      : "text-slate-300 hover:text-white hover:bg-white/5"
+                  className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-xs font-medium ${
+                    isActive ? "text-amber-400 font-semibold" : "text-slate-400"
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? "text-amber-400" : "text-slate-400"}`} />
-                  {item.name}
+                  <Icon className="w-5 h-5" />
+                  <span>{item.name.replace(" & Sync", "")}</span>
                 </Link>
               );
             })}
-          </nav>
-
-          {/* Action button */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-sm font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <PlusCircle className="w-4 h-4 text-slate-950" />
-              <span className="hidden sm:inline">Ghi nhận giao dịch</span>
-              <span className="sm:hidden">Thêm</span>
-            </button>
           </div>
-        </div>
-
-        {/* Mobile Nav Bar at Bottom */}
-        <div className="md:hidden flex items-center justify-around border-t border-white/5 py-2 px-2 bg-slate-950/80 backdrop-blur-md">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-xs font-medium ${
-                  isActive ? "text-amber-400 font-semibold" : "text-slate-400"
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.name.replace(" & Sync", "")}</span>
-              </Link>
-            );
-          })}
-        </div>
+        )}
       </header>
 
       {/* Quick Transaction Modal */}
-      {isModalOpen && (
+      {isModalOpen && !isLoginPage && (
         <TransactionModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}

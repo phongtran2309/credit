@@ -22,6 +22,10 @@ import {
   Check,
   Server,
   Sparkles,
+  ShieldCheck,
+  Lock,
+  KeyRound,
+  ShieldAlert,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -109,6 +113,71 @@ export default function SettingsPage() {
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
           Cấu hình kết nối Supabase Cloud Sync, sao lưu & khôi phục dữ liệu chi tiêu.
         </p>
+      </div>
+
+      {/* Security & Access Protection Box */}
+      <div className="p-6 md:p-8 rounded-3xl glass-panel border border-amber-500/20 space-y-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                Bảo vệ Truy cập & An ninh Web
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+                  Đang kích hoạt
+                </span>
+              </h3>
+              <p className="text-xs text-slate-400">
+                Chặn toàn bộ người lạ, bot quét và spam/hack. Khóa vĩnh viễn nếu nhập sai 5 lần.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={async () => {
+              await fetch("/api/auth/logout", { method: "POST" });
+              window.location.href = "/login";
+            }}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold transition-all hover:scale-[1.02] cursor-pointer"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            Khóa truy cập & Đăng xuất
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-2xl bg-slate-900/80 border border-white/10 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
+              <KeyRound className="w-4 h-4" />
+              <span>Biến môi trường trên Vercel</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Truy cập <b>Vercel Dashboard</b> &rarr; Project Settings &rarr; <b>Environment Variables</b> để cấu hình mật khẩu thật:
+            </p>
+            <div className="p-2.5 rounded-xl bg-slate-950 font-mono text-[11px] text-slate-300 space-y-1">
+              <div><span className="text-amber-400">SITE_PASSWORD</span>=mat-khau-bi-mat-cua-ban</div>
+              <div><span className="text-sky-400">AUTH_SECRET</span>=chuoi-ngau-nhien-dai-32-ky-tu</div>
+              <div><span className="text-emerald-400">AUTH_UNLOCK_KEY</span>=khoa-mo-khoa-khan-cap</div>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-900/80 border border-white/10 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-emerald-300">
+              <ShieldAlert className="w-4 h-4 text-amber-400" />
+              <span>Quy tắc An toàn Nghiêm ngặt</span>
+            </div>
+            <ul className="text-xs text-slate-400 space-y-1.5 list-disc list-inside">
+              <li>Mã hóa HMAC SHA-256 qua Cookie <code className="text-amber-300">HttpOnly</code>.</li>
+              <li>Next.js Edge Middleware chặn 100% trang & API.</li>
+              <li><b className="text-rose-400">Sai 5 lần</b>: Khóa vĩnh viễn để chống Brute-force & Bot spam.</li>
+              <li>Chủ sở hữu có thể dùng Master Recovery Key để mở khóa.</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       {/* Supabase Cloud Connection Box */}
