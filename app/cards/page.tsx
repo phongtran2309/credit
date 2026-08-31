@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getStoredCards, syncCardsFromSupabase, deleteCard } from "@/lib/storage";
 import { CreditCard } from "@/types";
 import CreditCardVisual from "@/components/CreditCardVisual";
@@ -9,39 +9,39 @@ import {
   Layers,
   CheckCircle,
   Tag,
-  ChevronDown,
-  ChevronUp,
   Info,
   Calendar,
   DollarSign,
-  PlusCircle,
-  ShieldAlert,
   Plus,
   Copy,
   Edit,
   Trash2,
   User,
+  MoreVertical,
+  BookOpen,
+  X,
+  Sparkles,
 } from "lucide-react";
-import TransactionModal from "@/components/TransactionModal";
 import CardModal from "@/components/CardModal";
 
 export default function CardsPage() {
   const [cards, setCards] = useState<CreditCard[]>([]);
-  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
-  const [activeTxCard, setActiveTxCard] = useState<CreditCard | null>(null);
+  const [mccModalCard, setMccModalCard] = useState<CreditCard | null>(null);
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
   // Card Modal state
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [cardModalMode, setCardModalMode] = useState<"create" | "duplicate" | "edit">("create");
   const [cardModalTarget, setCardModalTarget] = useState<CreditCard | null>(null);
 
+  // Close action dropdown on outside click
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     const loaded = getStoredCards();
     setCards(loaded);
-    if (loaded.length > 0) {
-      setExpandedCardId(loaded[0].id);
-    }
 
+    // Tắt tự động mở rộng thẻ đầu tiên - mặc định đóng hết
     // Try syncing from Supabase if connected
     syncCardsFromSupabase().then((synced) => {
       if (synced) setCards(synced);
@@ -51,12 +51,19 @@ export default function CardsPage() {
       setCards(getStoredCards());
     };
     window.addEventListener("cards_updated", handleUpdate);
-    return () => window.removeEventListener("cards_updated", handleUpdate);
-  }, []);
 
-  const toggleExpand = (id: string) => {
-    setExpandedCardId(expandedCardId === id ? null : id);
-  };
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpenActionId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+
+    return () => {
+      window.removeEventListener("cards_updated", handleUpdate);
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
 
   const handleOpenCreate = () => {
     setCardModalMode("create");
@@ -65,19 +72,28 @@ export default function CardsPage() {
   };
 
   const handleOpenDuplicate = (card: CreditCard) => {
+    setOpenActionId(null);
     setCardModalMode("duplicate");
     setCardModalTarget(card);
     setIsCardModalOpen(true);
   };
 
   const handleOpenEdit = (card: CreditCard) => {
+    setOpenActionId(null);
     setCardModalMode("edit");
     setCardModalTarget(card);
     setIsCardModalOpen(true);
   };
 
   const handleDeleteCard = (card: CreditCard) => {
-    if (confirm(`Bạn có chắc chắn muốn xóa thẻ "${card.name}${card.cardholderName ? ` (${card.cardholderName})` : ""}" khỏi danh mục quản lý không?`)) {
+    setOpenActionId(null);
+    if (
+      confirm(
+        `Bạn có chắc chắn muốn xóa thẻ "${card.name}${
+          card.cardholderName ? ` (${card.cardholderName})` : ""
+        }" khỏi danh mục quản lý không?`
+      )
+    ) {
       const updated = deleteCard(card.id);
       setCards(updated);
     }
@@ -91,239 +107,300 @@ export default function CardsPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/20 mb-2">
             <Layers className="w-3.5 h-3.5" /> Quản lý Danh mục Thẻ Tín Dụng & Chính sách Hoàn tiền
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black text-white">Chính sách & Danh mục Thẻ</h1>
+          <h1 className="text-2xl sm:text-4xl font-black text-white">
+            Chính sách & Danh mục Thẻ ({cards.length})
+          </h1>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Theo dõi tỷ lệ hoàn tiền, hạn mức kỳ & danh mục, quy tắc MCC và dễ dàng thêm thẻ mới / nhân bản thẻ cùng dòng khác chủ thẻ.
+            Theo dõi tỷ lệ hoàn tiền, hạn mức kỳ & danh mục, quy tắc MCC và quản lý nhiều thẻ tín dụng của bạn.
           </p>
         </div>
 
         <button
           onClick={handleOpenCreate}
-          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/25 transition-all hover:scale-[1.03] shrink-0"
+          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/25 transition-all hover:scale-[1.03] shrink-0 cursor-pointer"
         >
           <Plus className="w-5 h-5" />
           Thêm thẻ tín dụng mới
         </button>
       </div>
 
-      {/* Cards Grid */}
-      <div className="space-y-6">
+      {/* Cards Grid (Modern Multi-Column Grid) */}
+      <div ref={dropdownRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {cards.map((card) => {
-          const isExpanded = expandedCardId === card.id;
+          const isActionOpen = openActionId === card.id;
+          const maxRuleRate = Math.max(
+            ...card.rules.map((r) => r.cashbackRate),
+            card.defaultCashbackRate
+          );
 
           return (
             <div
               key={card.id}
-              className="p-6 md:p-8 rounded-3xl glass-panel border border-white/10 space-y-6 transition-all hover:border-amber-500/30"
+              className="rounded-3xl glass-panel border border-white/10 p-5 flex flex-col justify-between space-y-4 transition-all hover:border-amber-500/40 relative group"
             >
-              {/* Card Summary Header */}
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 w-full lg:w-auto">
-                  {/* Visual mockup */}
-                  <div className="w-full sm:w-64 shrink-0">
-                    <CreditCardVisual card={card} compact />
-                  </div>
-
-                  {/* Summary Text */}
-                  <div className="space-y-2">
-                    {/* Line 1: Tên thẻ & Ngân hàng & Tags */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-2xl font-black text-white">{card.name}</h3>
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
-                        {card.bank}
-                      </span>
-                      {card.hasPreviousCycleTier && (
-                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-semibold border border-sky-500/30">
-                          Tỷ lệ theo kỳ trước
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Line 2: Tên chủ thẻ */}
-                    {card.cardholderName && (
-                      <div>
-                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30 inline-flex items-center gap-1">
-                          <User className="w-3 h-3" /> Chủ thẻ: {card.cardholderName}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-amber-400" /> Ngày chốt: {card.statementDay} hàng tháng
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-sky-400" /> Hạn thanh toán: ngày {card.dueDay}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="w-3.5 h-3.5 text-emerald-400" /> Trần hoàn: {formatCurrencyVND(card.maxCashbackPerMonth)}/kỳ
-                      </span>
-                      {card.maxCashbackPerCategory && (
-                        <span className="flex items-center gap-1 text-amber-300/90 font-medium">
-                          <Layers className="w-3.5 h-3.5 text-amber-400" /> Max/danh mục: {formatCurrencyVND(card.maxCashbackPerCategory)}/kỳ
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Features list */}
-                    <div className="space-y-1 pt-1">
-                      {card.features.map((feat, idx) => {
-                        const maxRuleRate = Math.max(...card.rules.map((r) => r.cashbackRate), card.defaultCashbackRate);
-                        const displayFeat = feat.replace(/Hoàn tiền \d+% cho danh mục/gi, `Hoàn tiền ${maxRuleRate}% cho danh mục`);
-                        return (
-                          <div key={idx} className="flex items-center gap-2 text-xs text-slate-300">
-                            <CheckCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                            <span>{displayFeat}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+              {/* Top: Visual Mockup */}
+              <div className="space-y-3">
+                <div className="w-full">
+                  <CreditCardVisual card={card} compact />
                 </div>
 
-                {/* Actions Grid */}
-                <div className="flex flex-wrap lg:flex-col items-start lg:items-end justify-between w-full lg:w-auto gap-2.5 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setActiveTxCard(card)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all hover:scale-[1.02]"
-                    >
-                      <PlusCircle className="w-4 h-4" />
-                      Quẹt thẻ
-                    </button>
-
-                    <button
-                      onClick={() => handleOpenDuplicate(card)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold text-xs border border-sky-500/30 transition-all"
-                      title="Tạo thêm 1 thẻ cùng dòng cho người khác đứng tên"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      Nhân bản (Khác chủ thẻ)
-                    </button>
+                {/* Card Title & Holder */}
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-extrabold text-white text-base line-clamp-1">
+                      {card.name}
+                    </h3>
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30 shrink-0">
+                      {card.bank}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleOpenEdit(card)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-white/5 transition-colors"
-                      title="Chỉnh sửa thông tin thẻ"
-                    >
-                      <Edit className="w-3.5 h-3.5 text-slate-400" />
-                      Sửa
-                    </button>
-
-                    <button
-                      onClick={() => handleDeleteCard(card)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-950/50 hover:text-rose-300 text-slate-400 text-xs font-semibold border border-white/5 transition-colors"
-                      title="Xóa thẻ khỏi danh mục"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-rose-400" />
-                      Xóa
-                    </button>
-
-                    <button
-                      onClick={() => toggleExpand(card.id)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-white/5 transition-colors"
-                    >
-                      <span>{isExpanded ? "Thu gọn" : `MCC (${card.rules.length})`}</span>
-                      {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
+                  {card.cardholderName ? (
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30 inline-flex items-center gap-1 mt-1">
+                      <User className="w-3 h-3" /> {card.cardholderName}
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-slate-500 italic block mt-1">
+                      Chưa đặt chủ thẻ
+                    </span>
+                  )}
                 </div>
-              </div>
 
-              {/* Detailed Rules & MCCs Accordion */}
-              {isExpanded && (
-                <div className="pt-6 border-t border-white/10 space-y-4 animate-in fade-in duration-200">
-                  <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-amber-400" />
-                    Các quy tắc hoàn tiền & danh sách mã MCC áp dụng:
-                  </h4>
+                {/* Key Metrics Snippet */}
+                <div className="p-3 rounded-2xl bg-slate-950/60 border border-white/5 space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between text-slate-400">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-amber-400" /> Ngày chốt:
+                    </span>
+                    <span className="font-semibold text-slate-200">
+                      {card.statementDay} hàng tháng
+                    </span>
+                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {card.rules.map((rule, rIdx) => {
-                      const displayNote = rule.note
-                        ? rule.note.replace(/Hoàn \d+(\.\d+)?%/gi, `Hoàn ${rule.cashbackRate}%`)
-                        : `Hoàn ${rule.cashbackRate}% cho danh mục ${rule.category}`;
+                  <div className="flex items-center justify-between text-slate-400">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5 text-sky-400" /> Hạn thanh toán:
+                    </span>
+                    <span className="font-semibold text-sky-300">
+                      Ngày {card.dueDay}
+                    </span>
+                  </div>
 
-                      return (
-                        <div
-                          key={rIdx}
-                          className="p-4 rounded-2xl bg-slate-900/80 border border-white/5 space-y-3"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-white text-sm">{rule.category}</span>
-                            <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-extrabold text-sm border border-amber-500/30">
-                              {rule.tierRates ? "Hoàn 5% - 10%" : `Hoàn ${rule.cashbackRate}%`}
-                            </span>
-                          </div>
+                  <div className="flex items-center justify-between text-slate-300 pt-1 border-t border-white/5">
+                    <span className="flex items-center gap-1">
+                      <DollarSign className="w-3.5 h-3.5 text-emerald-400" /> Trần hoàn kỳ:
+                    </span>
+                    <span className="font-extrabold text-amber-300">
+                      {formatCurrencyVND(card.maxCashbackPerMonth)}
+                    </span>
+                  </div>
 
-                          {rule.tierRates && (
-                            <div className="p-2.5 rounded-xl bg-slate-950/60 border border-white/5 text-[11px] space-y-1">
-                              <span className="font-semibold text-slate-300 block">Tỷ lệ theo tổng chi tiêu kỳ liền trước:</span>
-                              <div className="grid grid-cols-3 gap-1 text-center font-medium">
-                                <div className="p-1 rounded bg-slate-800 text-slate-300">
-                                  ≤50Tr: <strong className="text-amber-400 font-bold">{rule.tierRates.tier1}%</strong>
-                                </div>
-                                <div className="p-1 rounded bg-slate-800 text-slate-300">
-                                  50-100Tr: <strong className="text-amber-400 font-bold">{rule.tierRates.tier2}%</strong>
-                                </div>
-                                <div className="p-1 rounded bg-slate-800 text-slate-300">
-                                  &gt;100Tr: <strong className="text-amber-400 font-bold">{rule.tierRates.tier3}%</strong>
-                                </div>
-                              </div>
-                            </div>
-                          )}
+                  {card.maxCashbackPerCategory && (
+                    <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                      <span>Max/danh mục:</span>
+                      <span className="text-slate-300 font-medium">
+                        {formatCurrencyVND(card.maxCashbackPerCategory)}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
-                          {displayNote && (
-                            <p className="text-xs text-slate-400 flex items-start gap-1">
-                              <Info className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-                              <span>{displayNote}</span>
-                            </p>
-                          )}
-
-                        {/* MCC codes tags */}
-                        {rule.mccCodes && rule.mccCodes.length > 0 && (
-                          <div className="space-y-1.5 pt-1">
-                            <div className="text-[11px] text-slate-500 font-semibold">
-                              MÃ MCC ÁP DỤNG ({rule.mccCodes.length} mã):
-                            </div>
-                            <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto pr-1">
-                              {rule.mccCodes.map((code) => (
-                                <span
-                                  key={code}
-                                  className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 border border-white/5 hover:border-amber-500/40"
-                                >
-                                  {code}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                {/* Features (Compact 2 bullets) */}
+                <div className="space-y-1 text-xs text-slate-300">
+                  {card.features.slice(0, 2).map((feat, idx) => {
+                    const displayFeat = feat.replace(
+                      /Hoàn tiền \d+% cho danh mục/gi,
+                      `Hoàn tiền ${maxRuleRate}% cho danh mục`
+                    );
+                    return (
+                      <div key={idx} className="flex items-start gap-1.5 text-[11px] text-slate-400">
+                        <CheckCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                        <span className="line-clamp-1">{displayFeat}</span>
                       </div>
                     );
                   })}
                 </div>
               </div>
-              )}
+
+              {/* Bottom Actions Bar */}
+              <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2 relative">
+                {/* Nút Xem MCC */}
+                <button
+                  type="button"
+                  onClick={() => setMccModalCard(card)}
+                  className="flex-1 py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold border border-white/10 hover:border-amber-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Xem MCC ({card.rules.length})</span>
+                </button>
+
+                {/* Nút Action 3 chấm (Dropdown) */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenActionId(isActionOpen ? null : card.id);
+                    }}
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                    title="Tùy chọn thao tác"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+
+                  {/* Dropdown Menu (3 actions: Edit / Duplicate / Delete) */}
+                  {isActionOpen && (
+                    <div className="absolute right-0 bottom-full mb-2 w-48 rounded-2xl bg-slate-900 border border-white/15 shadow-2xl p-1.5 z-30 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(card)}
+                        className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-200 hover:bg-white/10 flex items-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <Edit className="w-3.5 h-3.5 text-sky-400" />
+                        <span>Chỉnh sửa thông tin</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDuplicate(card)}
+                        className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-slate-200 hover:bg-white/10 flex items-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <Copy className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Nhân bản (Khác chủ thẻ)</span>
+                      </button>
+
+                      <div className="border-t border-white/10 my-1" />
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCard(card)}
+                        className="w-full px-3 py-2 rounded-xl text-left text-xs font-semibold text-rose-400 hover:bg-rose-500/10 flex items-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Xóa thẻ này</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* Transaction Modal */}
-      {activeTxCard && (
-        <TransactionModal
-          isOpen={!!activeTxCard}
-          onClose={() => setActiveTxCard(null)}
-          defaultCardId={activeTxCard.id}
-          onSuccess={() => {
-            setActiveTxCard(null);
-            if (typeof window !== "undefined") {
-              window.dispatchEvent(new Event("transaction_updated"));
-            }
-          }}
-        />
+      {/* Modal Xem Danh Mục MCC Chi Tiết */}
+      {mccModalCard && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-white/15 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto relative">
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                    {mccModalCard.bank}
+                  </span>
+                  <h3 className="text-xl font-extrabold text-white">
+                    {mccModalCard.name}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-400">
+                  Quy tắc hoàn tiền & danh sách mã danh mục MCC được áp dụng
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMccModalCard(null)}
+                className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Rules List */}
+            <div className="space-y-4">
+              {mccModalCard.rules.map((rule, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-2xl bg-slate-950/80 border border-white/10 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-white text-sm">
+                      {rule.category}
+                    </span>
+                    <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-black text-sm border border-amber-500/30">
+                      {rule.tierRates ? "Hoàn 5% - 10%" : `Hoàn ${rule.cashbackRate}%`}
+                    </span>
+                  </div>
+
+                  {rule.tierRates && (
+                    <div className="p-3 rounded-xl bg-slate-900 border border-white/5 text-xs space-y-1.5">
+                      <span className="font-semibold text-slate-300 block">
+                        Tỷ lệ theo tổng chi tiêu kỳ liền trước:
+                      </span>
+                      <div className="grid grid-cols-3 gap-2 text-center font-medium">
+                        <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
+                          ≤50Tr:{" "}
+                          <strong className="text-amber-400 font-bold">
+                            {rule.tierRates.tier1}%
+                          </strong>
+                        </div>
+                        <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
+                          50-100Tr:{" "}
+                          <strong className="text-amber-400 font-bold">
+                            {rule.tierRates.tier2}%
+                          </strong>
+                        </div>
+                        <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
+                          &gt;100Tr:{" "}
+                          <strong className="text-amber-400 font-bold">
+                            {rule.tierRates.tier3}%
+                          </strong>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {rule.note && (
+                    <p className="text-xs text-slate-400 flex items-start gap-1.5">
+                      <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <span>{rule.note}</span>
+                    </p>
+                  )}
+
+                  {/* MCC codes tags */}
+                  {rule.mccCodes && rule.mccCodes.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <div className="text-[11px] text-slate-500 font-semibold">
+                        MÃ MCC ÁP DỤNG ({rule.mccCodes.length} mã):
+                      </div>
+                      <div className="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1">
+                        {rule.mccCodes.map((code) => (
+                          <span
+                            key={code}
+                            className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-slate-800 text-slate-200 border border-white/5 hover:border-amber-500/40"
+                          >
+                            {code}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setMccModalCard(null)}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-white/10 transition-colors"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Card Management Modal (Create / Duplicate / Edit) */}

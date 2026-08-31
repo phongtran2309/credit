@@ -64,7 +64,7 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       {/* Hero Banner */}
-      <div className="text-center max-w-3xl mx-auto space-y-3 pt-2">
+      <div className="text-center max-w-6xl mx-auto space-y-3 pt-2">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase tracking-wider">
           <Sparkles className="w-3.5 h-3.5" /> Tra cứu MCC Thông minh & Tối ưu Hoàn tiền
         </div>
@@ -80,7 +80,7 @@ export default function HomePage() {
       </div>
 
       {/* Main Search Section */}
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <MccSearchInput
           selectedMcc={selectedMcc}
           onSelectMcc={(item) => setSelectedMcc(item)}
@@ -98,7 +98,7 @@ export default function HomePage() {
       </div>
 
       {/* Active Filter / MCC Badge Bar */}
-      <div className="max-w-4xl mx-auto p-4 rounded-2xl bg-slate-900/80 border border-amber-500/20 glass-panel flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="max-w-6xl mx-auto p-4 rounded-2xl bg-slate-900/80 border border-amber-500/20 glass-panel flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         {selectedMcc ? (
           <>
             <div className="flex items-center gap-3">
@@ -191,7 +191,7 @@ export default function HomePage() {
       </div>
 
       {/* Recommendations Result */}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <CardRecommendation
           results={recommendations}
           spendAmount={spendAmount}
@@ -201,7 +201,7 @@ export default function HomePage() {
       </div>
 
       {/* Features Quick Grid */}
-      <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-white/10">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-white/10">
         <div className="p-5 rounded-2xl glass-panel border border-white/5 space-y-2">
           <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
             <Award className="w-5 h-5" />

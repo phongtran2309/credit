@@ -11,6 +11,7 @@ import { calculateStatementCycle, isDateInCycle, formatCurrencyVND } from "@/lib
 import { Transaction, CreditCard, CardSpendingSummary } from "@/types";
 import StatementProgress from "@/components/StatementProgress";
 import SpendingChart from "@/components/SpendingChart";
+import PaymentDueReminder from "@/components/PaymentDueReminder";
 import {
   Trash2,
   Filter,
@@ -210,16 +211,19 @@ export default function TrackerPage() {
         </div>
       </div>
 
-      {/* Statement Cycle Progress per Card */}
+      {/* Payment Due Date Reminders */}
+      <PaymentDueReminder cards={cards} transactions={transactions} />
+
+      {/* Statement Cycle Progress per Card (Multi-Column Grid) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <Calendar className="w-5 h-5 text-amber-400" />
-            Tiến độ hoàn tiền theo chu kỳ sao kê từng thẻ
+            Tiến độ hoàn tiền theo chu kỳ sao kê từng thẻ ({cards.length})
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {cardSummaries.map((summary) => (
             <StatementProgress key={summary.card.id} summary={summary} />
           ))}

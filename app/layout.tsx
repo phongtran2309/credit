@@ -19,7 +19,7 @@ export default function RootLayout({
       <body className="antialiased min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950">
         <SupabaseSyncProvider />
         <Navbar />
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 md:py-8">
           {children}
         </main>
         <footer className="border-t border-white/10 glass-panel py-6 mt-12 text-center text-xs text-slate-400">

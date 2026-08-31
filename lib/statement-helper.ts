@@ -109,6 +109,75 @@ export function formatCurrencyVND(amount: number): string {
 /**
  * Format number with comma
  */
+/**
+ * Thông tin trạng thái nhắc hạn thanh toán
+ */
+export interface CardPaymentDueStatus {
+  card: any;
+  cycleInfo: StatementCycleInfo;
+  dueDate: Date;
+  dueDaysRemaining: number;
+  isOverdue: boolean;
+  isDueSoon: boolean; // 1-5 ngày
+  statusLabel: string;
+  urgencyLevel: "critical" | "warning" | "info" | "normal";
+  cycleSpentAmount: number;
+}
+
+export function getCardPaymentDueStatus(
+  card: any,
+  transactions: any[] = [],
+  referenceDate: Date = new Date()
+): CardPaymentDueStatus {
+  const cycleInfo = calculateStatementCycle(card.statementDay, card.dueDay, referenceDate);
+
+  // Tính số ngày còn lại đến hạn thanh toán
+  const diffTime = cycleInfo.dueDate.getTime() - referenceDate.getTime();
+  const dueDaysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  const isOverdue = dueDaysRemaining < 0;
+  const isDueSoon = dueDaysRemaining >= 0 && dueDaysRemaining <= 5;
+
+  let urgencyLevel: "critical" | "warning" | "info" | "normal" = "normal";
+  let statusLabel = `Hạn ${cycleInfo.dueDate.getDate()}/${cycleInfo.dueDate.getMonth() + 1} (còn ${dueDaysRemaining} ngày)`;
+
+  if (isOverdue) {
+    urgencyLevel = "critical";
+    statusLabel = `Đã quá hạn (${Math.abs(dueDaysRemaining)} ngày trước)`;
+  } else if (dueDaysRemaining === 0) {
+    urgencyLevel = "critical";
+    statusLabel = `Hạn chót HÔM NAY!`;
+  } else if (dueDaysRemaining <= 3) {
+    urgencyLevel = "critical";
+    statusLabel = `Gấp: Còn ${dueDaysRemaining} ngày`;
+  } else if (dueDaysRemaining <= 7) {
+    urgencyLevel = "warning";
+    statusLabel = `Sắp đến hạn (${dueDaysRemaining} ngày)`;
+  } else if (cycleInfo.daysRemaining <= 3) {
+    urgencyLevel = "info";
+    statusLabel = `Sắp chốt sao kê (còn ${cycleInfo.daysRemaining} ngày)`;
+  }
+
+  // Tổng chi tiêu trong kỳ
+  const cycleTxs = transactions.filter(
+    (tx) => tx.cardId === card.id && isDateInCycle(tx.transactionDate, cycleInfo)
+  );
+  const cycleSpentAmount = cycleTxs.reduce((sum, tx) => sum + tx.amount, 0);
+
+  return {
+    card,
+    cycleInfo,
+    dueDate: cycleInfo.dueDate,
+    dueDaysRemaining,
+    isOverdue,
+    isDueSoon,
+    statusLabel,
+    urgencyLevel,
+    cycleSpentAmount,
+  };
+}
+
 export function formatNumber(num: number): string {
   return new Intl.NumberFormat("vi-VN").format(num);
 }
+

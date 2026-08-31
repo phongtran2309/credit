@@ -143,7 +143,7 @@ export default function CardRecommendation({
           <span className="text-xs text-slate-400">Sắp xếp theo số tiền hoàn thực tế còn lại</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {results.map((res, index) => (
             <div
               key={res.card.id}
