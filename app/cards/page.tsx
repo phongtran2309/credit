@@ -23,6 +23,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import CardModal from "@/components/CardModal";
+import MccRulesModal from "@/components/MccRulesModal";
 
 export default function CardsPage() {
   const [cards, setCards] = useState<CreditCard[]>([]);
@@ -289,119 +290,11 @@ export default function CardsPage() {
       </div>
 
       {/* Modal Xem Danh Mục MCC Chi Tiết */}
-      {mccModalCard && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-white/15 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto relative">
-            {/* Modal Header */}
-            <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
-                    {mccModalCard.bank}
-                  </span>
-                  <h3 className="text-xl font-extrabold text-white">
-                    {mccModalCard.name}
-                  </h3>
-                </div>
-                <p className="text-xs text-slate-400">
-                  Quy tắc hoàn tiền & danh sách mã danh mục MCC được áp dụng
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setMccModalCard(null)}
-                className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Rules List */}
-            <div className="space-y-4">
-              {mccModalCard.rules.map((rule, idx) => (
-                <div
-                  key={idx}
-                  className="p-4 rounded-2xl bg-slate-950/80 border border-white/10 space-y-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-white text-sm">
-                      {rule.category}
-                    </span>
-                    <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-black text-sm border border-amber-500/30">
-                      {rule.tierRates ? "Hoàn 5% - 10%" : `Hoàn ${rule.cashbackRate}%`}
-                    </span>
-                  </div>
-
-                  {rule.tierRates && (
-                    <div className="p-3 rounded-xl bg-slate-900 border border-white/5 text-xs space-y-1.5">
-                      <span className="font-semibold text-slate-300 block">
-                        Tỷ lệ theo tổng chi tiêu kỳ liền trước:
-                      </span>
-                      <div className="grid grid-cols-3 gap-2 text-center font-medium">
-                        <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
-                          ≤50Tr:{" "}
-                          <strong className="text-amber-400 font-bold">
-                            {rule.tierRates.tier1}%
-                          </strong>
-                        </div>
-                        <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
-                          50-100Tr:{" "}
-                          <strong className="text-amber-400 font-bold">
-                            {rule.tierRates.tier2}%
-                          </strong>
-                        </div>
-                        <div className="p-1.5 rounded-lg bg-slate-800 text-slate-300">
-                          &gt;100Tr:{" "}
-                          <strong className="text-amber-400 font-bold">
-                            {rule.tierRates.tier3}%
-                          </strong>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {rule.note && (
-                    <p className="text-xs text-slate-400 flex items-start gap-1.5">
-                      <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                      <span>{rule.note}</span>
-                    </p>
-                  )}
-
-                  {/* MCC codes tags */}
-                  {rule.mccCodes && rule.mccCodes.length > 0 && (
-                    <div className="space-y-1.5 pt-1">
-                      <div className="text-[11px] text-slate-500 font-semibold">
-                        MÃ MCC ÁP DỤNG ({rule.mccCodes.length} mã):
-                      </div>
-                      <div className="flex flex-wrap gap-1 max-h-36 overflow-y-auto pr-1">
-                        {rule.mccCodes.map((code) => (
-                          <span
-                            key={code}
-                            className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-slate-800 text-slate-200 border border-white/5 hover:border-amber-500/40"
-                          >
-                            {code}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="button"
-                onClick={() => setMccModalCard(null)}
-                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-white/10 transition-colors"
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <MccRulesModal
+        isOpen={!!mccModalCard}
+        onClose={() => setMccModalCard(null)}
+        card={mccModalCard}
+      />
 
       {/* Card Management Modal (Create / Duplicate / Edit) */}
       <CardModal
