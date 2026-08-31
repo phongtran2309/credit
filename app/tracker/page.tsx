@@ -11,7 +11,6 @@ import { calculateStatementCycle, isDateInCycle, formatCurrencyVND } from "@/lib
 import { Transaction, CreditCard, CardSpendingSummary } from "@/types";
 import StatementProgress from "@/components/StatementProgress";
 import SpendingChart from "@/components/SpendingChart";
-import PaymentDueReminder from "@/components/PaymentDueReminder";
 import {
   Trash2,
   Filter,
@@ -210,9 +209,6 @@ export default function TrackerPage() {
           <span className="text-[11px] text-slate-500 block">Dữ liệu theo danh mục thẻ VIB</span>
         </div>
       </div>
-
-      {/* Payment Due Date Reminders */}
-      <PaymentDueReminder cards={cards} transactions={transactions} />
 
       {/* Statement Cycle Progress per Card (Multi-Column Grid) */}
       <div className="space-y-4">
