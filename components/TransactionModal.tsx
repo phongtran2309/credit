@@ -288,6 +288,7 @@ export default function TransactionModal({
       : "Chi tiêu giao dịch";
 
     const finalMccName = mccName.trim() || (mccCode ? `Mã MCC ${mccCode}` : defaultName);
+    const effectiveRate = numAmount > 0 ? Number(((actualCashback / numAmount) * 100).toFixed(2)) : Number(cashbackRate);
 
     if (editingTransaction) {
       updateTransaction(editingTransaction.id, {
@@ -296,7 +297,7 @@ export default function TransactionModal({
         mccName: finalMccName,
         amount: numAmount,
         transactionDate: date,
-        cashbackRate: Number(cashbackRate),
+        cashbackRate: effectiveRate,
         cashbackAmount: actualCashback,
         note,
         isOnline,
@@ -310,7 +311,7 @@ export default function TransactionModal({
         mccName: finalMccName,
         amount: numAmount,
         transactionDate: date,
-        cashbackRate: Number(cashbackRate),
+        cashbackRate: effectiveRate,
         cashbackAmount: actualCashback,
         note,
         isOnline,

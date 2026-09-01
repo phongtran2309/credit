@@ -317,15 +317,13 @@ export default function TrackerPage() {
                             +{formatCurrencyVND(tx.cashbackAmount)}
                           </span>
                           {(() => {
-                            const rate =
-                              tx.cashbackRate > 0
-                                ? tx.cashbackRate
-                                : tx.amount > 0 && tx.cashbackAmount > 0
+                            const effectiveRate =
+                              tx.amount > 0
                                 ? Number(((tx.cashbackAmount / tx.amount) * 100).toFixed(2))
-                                : 0;
+                                : tx.cashbackRate || 0;
                             return (
                               <span className="text-[10px] text-amber-400/80 font-semibold">
-                                ({rate}%)
+                                ({effectiveRate}%)
                               </span>
                             );
                           })()}
