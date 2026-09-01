@@ -3,113 +3,215 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   3 DEDICATED GENTLE THEMES (Tối Ấm, Trung Tính, Sáng Ấm)
-   - Loại bỏ hoàn toàn tone tối gắt (đen OLED) và sáng chói (trắng tinh)
+   EYE-FRIENDLY THEME SYSTEM -- 3 Dedicated Gentle Themes
+   ✓ No pure black (#000) or pure white (#FFF)
+   ✓ Moderate contrast -- WCAG AA+ compliant
+   ✓ Low saturation accents -- no neon/harsh colors
+   ✓ Generous line-height & minimum font sizes
+   ✓ Slower animations for eye comfort
+   ✓ Pastel status colors (no harsh red/green for +/- data)
    ========================================================================== */
 
-/* 1. TỐI ẤM (Warm Dark - Mặc định) */
+/* --------------------------------------------------------------------------
+   1. TOI AM (Warm Dark) -- Mac dinh
+   Nen: #1E1C22 -- xam than am, KHONG phai den OLED
+   Text: #E8E2D9 -- kem nhat, tuong phan ~7:1 (WCAG AAA)
+   -------------------------------------------------------------------------- */
 :root,
 html[data-theme='warm-dark'] {
-  --background: #1e1e24;
-  --foreground: #ece6dc;
-  --card-bg: rgba(38, 38, 48, 0.85);
-  --card-border: rgba(230, 220, 200, 0.1);
-  --panel-bg: rgba(38, 38, 48, 0.82);
-  --panel-hover: rgba(50, 50, 64, 0.92);
-  --panel-border: rgba(230, 220, 200, 0.1);
-  --input-bg: #262632;
-  --input-border: rgba(230, 220, 200, 0.15);
-  --input-text: #ece6dc;
-  --scrollbar-track: rgba(28, 28, 36, 0.8);
-  --scrollbar-thumb: rgba(200, 190, 175, 0.25);
-  --modal-overlay: rgba(25, 25, 32, 0.94);
-  --glow-1: rgba(240, 180, 41, 0.09);
-  --glow-2: rgba(200, 130, 60, 0.08);
-  --glow-3: rgba(180, 120, 50, 0.06);
+  --background: #1e1c22;
+  --foreground: #e8e2d9;
+  --card-bg: rgba(36, 34, 42, 0.88);
+  --card-border: rgba(220, 210, 195, 0.09);
+  --panel-bg: rgba(36, 34, 42, 0.85);
+  --panel-hover: rgba(46, 44, 54, 0.95);
+  --panel-border: rgba(220, 210, 195, 0.09);
+  --input-bg: #28262e;
+  --input-border: rgba(220, 210, 195, 0.13);
+  --input-text: #e8e2d9;
+  --scrollbar-track: rgba(26, 24, 30, 0.8);
+  --scrollbar-thumb: rgba(190, 180, 165, 0.22);
+  --modal-overlay: rgba(20, 18, 24, 0.93);
+  --glow-1: rgba(201, 137, 63, 0.07);
+  --glow-2: rgba(160, 100, 50, 0.05);
+  --glow-3: rgba(130, 80, 40, 0.04);
+  --status-up-bg: rgba(101, 163, 120, 0.15);
+  --status-up-text: #7EC8A0;
+  --status-up-border: rgba(101, 163, 120, 0.25);
+  --status-down-bg: rgba(180, 110, 100, 0.15);
+  --status-down-text: #D4917F;
+  --status-down-border: rgba(180, 110, 100, 0.25);
+  --status-neutral-bg: rgba(130, 140, 165, 0.15);
+  --status-neutral-text: #9AAABB;
+  --status-neutral-border: rgba(130, 140, 165, 0.22);
 }
 
-/* 2. TRUNG TÍNH (Neutral Balanced) */
+/* --------------------------------------------------------------------------
+   2. TRUNG TINH (Neutral Balanced)
+   Nen: #252930 -- xam xanh can bang
+   Text: #DDE2EC -- doc thoai mai
+   -------------------------------------------------------------------------- */
 html[data-theme='neutral'] {
-  --background: #282d37;
-  --foreground: #e5e9f0;
-  --card-bg: rgba(48, 54, 66, 0.85);
-  --card-border: rgba(255, 255, 255, 0.1);
-  --panel-bg: rgba(48, 54, 66, 0.82);
-  --panel-hover: rgba(60, 68, 84, 0.95);
-  --panel-border: rgba(255, 255, 255, 0.1);
-  --input-bg: #2d3442;
-  --input-border: rgba(255, 255, 255, 0.15);
-  --input-text: #e5e9f0;
-  --scrollbar-track: rgba(36, 42, 52, 0.8);
-  --scrollbar-thumb: rgba(180, 190, 205, 0.25);
-  --modal-overlay: rgba(32, 38, 48, 0.94);
-  --glow-1: rgba(56, 189, 248, 0.08);
-  --glow-2: rgba(251, 191, 36, 0.07);
-  --glow-3: rgba(99, 102, 241, 0.06);
+  --background: #252930;
+  --foreground: #dde2ec;
+  --card-bg: rgba(42, 48, 60, 0.88);
+  --card-border: rgba(200, 210, 230, 0.09);
+  --panel-bg: rgba(42, 48, 60, 0.85);
+  --panel-hover: rgba(54, 62, 78, 0.95);
+  --panel-border: rgba(200, 210, 230, 0.09);
+  --input-bg: #2a3040;
+  --input-border: rgba(200, 210, 230, 0.13);
+  --input-text: #dde2ec;
+  --scrollbar-track: rgba(32, 38, 48, 0.8);
+  --scrollbar-thumb: rgba(170, 182, 205, 0.22);
+  --modal-overlay: rgba(28, 34, 44, 0.93);
+  --glow-1: rgba(107, 168, 200, 0.07);
+  --glow-2: rgba(200, 165, 80, 0.05);
+  --glow-3: rgba(90, 120, 180, 0.04);
+  --status-up-bg: rgba(90, 155, 115, 0.15);
+  --status-up-text: #7ABFA0;
+  --status-up-border: rgba(90, 155, 115, 0.25);
+  --status-down-bg: rgba(170, 105, 95, 0.15);
+  --status-down-text: #CC8E80;
+  --status-down-border: rgba(170, 105, 95, 0.25);
+  --status-neutral-bg: rgba(115, 130, 160, 0.15);
+  --status-neutral-text: #94A6BE;
+  --status-neutral-border: rgba(115, 130, 160, 0.22);
 }
 
-/* 3. SÁNG ẤM (Warm Light / Linen Cream) */
+/* --------------------------------------------------------------------------
+   3. SANG AM (Warm Light / Linen Cream)
+   Nen: #F5F0E8 -- kem nga am, KHONG phai trang tinh #FFF
+   Text: #2A2420 -- nau xam dam, tuong phan ~9:1 (WCAG AAA)
+   -------------------------------------------------------------------------- */
 html[data-theme='warm-light'] {
-  --background: #f3eee4;
-  --foreground: #2d2925;
-  --card-bg: rgba(251, 248, 242, 0.92);
-  --card-border: rgba(70, 55, 40, 0.12);
-  --panel-bg: rgba(251, 248, 242, 0.88);
-  --panel-hover: #ffffff;
-  --panel-border: rgba(70, 55, 40, 0.12);
+  --background: #f5f0e8;
+  --foreground: #2a2420;
+  --card-bg: rgba(250, 246, 238, 0.94);
+  --card-border: rgba(80, 60, 40, 0.10);
+  --panel-bg: rgba(250, 246, 238, 0.90);
+  --panel-hover: rgba(255, 252, 245, 0.98);
+  --panel-border: rgba(80, 60, 40, 0.10);
   --input-bg: #faf6ee;
-  --input-border: rgba(70, 55, 40, 0.18);
-  --input-text: #2d2925;
-  --scrollbar-track: rgba(235, 228, 218, 0.9);
-  --scrollbar-thumb: rgba(160, 145, 130, 0.4);
-  --modal-overlay: rgba(45, 40, 35, 0.65);
-  --glow-1: rgba(217, 119, 6, 0.06);
-  --glow-2: rgba(180, 83, 9, 0.05);
-  --glow-3: rgba(194, 65, 12, 0.04);
+  --input-border: rgba(80, 60, 40, 0.16);
+  --input-text: #2a2420;
+  --scrollbar-track: rgba(230, 224, 212, 0.9);
+  --scrollbar-thumb: rgba(150, 135, 115, 0.38);
+  --modal-overlay: rgba(40, 35, 28, 0.62);
+  --glow-1: rgba(160, 104, 48, 0.05);
+  --glow-2: rgba(140, 80, 20, 0.04);
+  --glow-3: rgba(160, 90, 30, 0.03);
+  --status-up-bg: rgba(85, 140, 100, 0.12);
+  --status-up-text: #3A7A52;
+  --status-up-border: rgba(85, 140, 100, 0.22);
+  --status-down-bg: rgba(160, 80, 70, 0.12);
+  --status-down-text: #8C4A3C;
+  --status-down-border: rgba(160, 80, 70, 0.22);
+  --status-neutral-bg: rgba(100, 110, 130, 0.10);
+  --status-neutral-text: #5E6C82;
+  --status-neutral-border: rgba(100, 110, 130, 0.18);
+}
+
+/* ==========================================================================
+   BASE TYPOGRAPHY -- Eye-Friendly Reading Defaults
+   ========================================================================== */
+@layer base {
+  html {
+    font-size: 15px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+
+  p, li {
+    line-height: 1.65;
+  }
+
+  code, pre, kbd, samp {
+    font-size: 0.875em;
+    line-height: 1.6;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(201, 137, 63, 0.55);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
 }
 
 /* Base Body Styles */
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-image: 
-    radial-gradient(at 0% 0%, var(--glow-1) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, var(--glow-2) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, var(--glow-3) 0px, transparent 50%);
+  background-image:
+    radial-gradient(at 0% 0%, var(--glow-1) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, var(--glow-2) 0px, transparent 55%),
+    radial-gradient(at 50% 100%, var(--glow-3) 0px, transparent 55%);
   min-height: 100vh;
-  transition: background-color 0.25s ease, color 0.25s ease;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-/* Glassmorphism utility */
+/* ==========================================================================
+   GLASSMORPHISM PANELS
+   ========================================================================== */
 .glass-panel {
   background: var(--panel-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
   border: 1px solid var(--panel-border);
-  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 html[data-theme='warm-light'] .glass-panel {
-  box-shadow: 0 10px 30px -10px rgba(60, 45, 30, 0.06), 0 1px 3px 0 rgba(60, 45, 30, 0.04);
+  box-shadow: 0 8px 24px -8px rgba(60, 45, 30, 0.07), 0 1px 3px 0 rgba(60, 45, 30, 0.04);
 }
 
 .glass-panel-hover {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-panel-hover:hover {
   background: var(--panel-hover);
-  border-color: rgba(243, 161, 0, 0.35);
-  box-shadow: 0 12px 30px -10px rgba(0, 75, 145, 0.25);
-  transform: translateY(-2px);
+  border-color: rgba(201, 137, 63, 0.28);
+  box-shadow: 0 10px 28px -8px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
 }
 
 html[data-theme='warm-light'] .glass-panel-hover:hover {
-  box-shadow: 0 14px 30px -10px rgba(60, 45, 30, 0.1), 0 4px 10px -2px rgba(60, 45, 30, 0.04);
+  box-shadow: 0 12px 28px -8px rgba(60, 45, 30, 0.10), 0 3px 8px -2px rgba(60, 45, 30, 0.05);
 }
 
-/* Metallic credit card reflection effect */
+/* ==========================================================================
+   PASTEL STATUS UTILITIES -- Eye-Safe Dashboard Colors
+   ========================================================================== */
+.status-up {
+  background-color: var(--status-up-bg);
+  color: var(--status-up-text);
+  border-color: var(--status-up-border);
+}
+
+.status-down {
+  background-color: var(--status-down-bg);
+  color: var(--status-down-text);
+  border-color: var(--status-down-border);
+}
+
+.status-neutral {
+  background-color: var(--status-neutral-bg);
+  color: var(--status-neutral-text);
+  border-color: var(--status-neutral-border);
+}
+
+/* ==========================================================================
+   METALLIC CREDIT CARD SHINE
+   ========================================================================== */
 .card-shine {
   position: relative;
   overflow: hidden;
@@ -125,17 +227,19 @@ html[data-theme='warm-light'] .glass-panel-hover:hover {
   background: linear-gradient(
     60deg,
     transparent 40%,
-    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.10) 50%,
     transparent 60%
   );
   transform: rotate(25deg);
   pointer-events: none;
 }
 
-/* Custom scrollbar */
+/* ==========================================================================
+   CUSTOM SCROLLBAR -- Thin, Unobtrusive
+   ========================================================================== */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -148,186 +252,152 @@ html[data-theme='warm-light'] .glass-panel-hover:hover {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(243, 161, 0, 0.5);
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-8px); }
-  40%, 80% { transform: translateX(8px); }
-}
-
-.animate-shake {
-  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  background: rgba(201, 137, 63, 0.38);
 }
 
 /* ==========================================================================
-   1. THEME: TỐI ẤM (Warm Dark)
+   ANIMATIONS -- Slower & Gentler for Eye Comfort
+   ========================================================================== */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Respect OS "reduce motion" preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   OVERRIDES: TOI AM (Warm Dark)
    ========================================================================== */
 html[data-theme='warm-dark'] .text-white:not(.card-shine *):not([class*="bg-amber"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-sky"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-violet"]):not([class*="from-"]):not(button.bg-gradient-to-r) {
-  color: #ece6dc;
+  color: #e8e2d9;
 }
 
 html[data-theme='warm-dark'] .text-slate-300:not(.card-shine *),
 html[data-theme='warm-dark'] .text-slate-200:not(.card-shine *),
-html[data-theme='warm-dark'] .text-slate-100:not(.card-shine *) {
-  color: #cdc6ba;
-}
+html[data-theme='warm-dark'] .text-slate-100:not(.card-shine *) { color: #c8c0b4; }
 
-html[data-theme='warm-dark'] .text-slate-400:not(.card-shine *) {
-  color: #9e968a;
-}
+html[data-theme='warm-dark'] .text-slate-400:not(.card-shine *) { color: #96907f; }
+html[data-theme='warm-dark'] .text-slate-500:not(.card-shine *) { color: #706a5e; }
 
 html[data-theme='warm-dark'] .bg-slate-900:not(.card-shine *),
-html[data-theme='warm-dark'] .bg-slate-950:not(.card-shine *) {
-  background-color: #262632;
-}
-
-html[data-theme='warm-dark'] .bg-slate-800:not(.card-shine *) {
-  background-color: #2e2e3c;
-}
+html[data-theme='warm-dark'] .bg-slate-950:not(.card-shine *) { background-color: #24222a; }
+html[data-theme='warm-dark'] .bg-slate-800:not(.card-shine *) { background-color: #2c2a34; }
 
 html[data-theme='warm-dark'] .bg-slate-900\/80,
-html[data-theme='warm-dark'] .bg-slate-950\/80 {
-  background-color: rgba(38, 38, 48, 0.9);
-}
-
-html[data-theme='warm-dark'] .bg-slate-950\/98 {
-  background-color: rgba(28, 28, 36, 0.96);
-}
+html[data-theme='warm-dark'] .bg-slate-950\/80 { background-color: rgba(36, 34, 42, 0.9); }
+html[data-theme='warm-dark'] .bg-slate-950\/98 { background-color: rgba(26, 24, 30, 0.97); }
 
 html[data-theme='warm-dark'] .border-white\/10,
-html[data-theme='warm-dark'] .border-white\/5 {
-  border-color: rgba(230, 220, 200, 0.1);
-}
+html[data-theme='warm-dark'] .border-white\/5 { border-color: rgba(220, 210, 195, 0.09); }
 
 html[data-theme='warm-dark'] input:not([type="checkbox"]):not([type="radio"]),
 html[data-theme='warm-dark'] select,
 html[data-theme='warm-dark'] textarea {
-  background-color: #242430 !important;
-  color: #ece6dc !important;
-  border-color: rgba(230, 220, 200, 0.14) !important;
+  background-color: #28262e !important;
+  color: #e8e2d9 !important;
+  border-color: rgba(220, 210, 195, 0.13) !important;
 }
+html[data-theme='warm-dark'] input::placeholder,
+html[data-theme='warm-dark'] textarea::placeholder { color: #706a5e !important; }
 
 /* ==========================================================================
-   2. THEME: TRUNG TÍNH (Neutral Balanced)
+   OVERRIDES: TRUNG TINH (Neutral)
    ========================================================================== */
 html[data-theme='neutral'] .text-white:not(.card-shine *):not([class*="bg-amber"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-sky"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-violet"]):not([class*="from-"]):not(button.bg-gradient-to-r) {
-  color: #e5e9f0;
+  color: #dde2ec;
 }
 
 html[data-theme='neutral'] .text-slate-300:not(.card-shine *),
-html[data-theme='neutral'] .text-slate-200:not(.card-shine *) {
-  color: #cdd4e0;
-}
+html[data-theme='neutral'] .text-slate-200:not(.card-shine *),
+html[data-theme='neutral'] .text-slate-100:not(.card-shine *) { color: #c6ceda; }
 
-html[data-theme='neutral'] .text-slate-400:not(.card-shine *) {
-  color: #9aa5b8;
-}
+html[data-theme='neutral'] .text-slate-400:not(.card-shine *) { color: #92a0b2; }
+html[data-theme='neutral'] .text-slate-500:not(.card-shine *) { color: #6a7888; }
 
 html[data-theme='neutral'] .bg-slate-900:not(.card-shine *),
-html[data-theme='neutral'] .bg-slate-950:not(.card-shine *) {
-  background-color: #303644;
-}
-
-html[data-theme='neutral'] .bg-slate-800:not(.card-shine *) {
-  background-color: #384050;
-}
+html[data-theme='neutral'] .bg-slate-950:not(.card-shine *) { background-color: #2a3040; }
+html[data-theme='neutral'] .bg-slate-800:not(.card-shine *) { background-color: #323a4c; }
 
 html[data-theme='neutral'] .bg-slate-900\/80,
-html[data-theme='neutral'] .bg-slate-950\/80 {
-  background-color: rgba(48, 54, 68, 0.9);
-}
-
-html[data-theme='neutral'] .bg-slate-950\/98 {
-  background-color: rgba(36, 42, 52, 0.96);
-}
+html[data-theme='neutral'] .bg-slate-950\/80 { background-color: rgba(42, 48, 64, 0.9); }
+html[data-theme='neutral'] .bg-slate-950\/98 { background-color: rgba(32, 38, 50, 0.97); }
 
 html[data-theme='neutral'] .border-white\/10,
-html[data-theme='neutral'] .border-white\/5 {
-  border-color: rgba(255, 255, 255, 0.1);
-}
+html[data-theme='neutral'] .border-white\/5 { border-color: rgba(200, 210, 230, 0.09); }
 
 html[data-theme='neutral'] input:not([type="checkbox"]):not([type="radio"]),
 html[data-theme='neutral'] select,
 html[data-theme='neutral'] textarea {
-  background-color: #2c3340 !important;
-  color: #e5e9f0 !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
+  background-color: #2a3040 !important;
+  color: #dde2ec !important;
+  border-color: rgba(200, 210, 230, 0.13) !important;
 }
+html[data-theme='neutral'] input::placeholder,
+html[data-theme='neutral'] textarea::placeholder { color: #6a7888 !important; }
 
 /* ==========================================================================
-   3. THEME: SÁNG ẤM (Warm Light / Linen Cream)
+   OVERRIDES: SANG AM (Warm Light)
    ========================================================================== */
 html[data-theme='warm-light'] .text-white:not(.card-shine *):not([class*="bg-amber"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-sky"]):not([class*="bg-blue"]):not([class*="bg-indigo"]):not([class*="bg-violet"]):not([class*="from-"]):not(button.bg-gradient-to-r) {
-  color: #2d2925;
+  color: #2a2420;
 }
 
 html[data-theme='warm-light'] .text-slate-300:not(.card-shine *),
 html[data-theme='warm-light'] .text-slate-200:not(.card-shine *),
-html[data-theme='warm-light'] .text-slate-100:not(.card-shine *) {
-  color: #524b43;
-}
+html[data-theme='warm-light'] .text-slate-100:not(.card-shine *) { color: #4e4840; }
 
-html[data-theme='warm-light'] .text-slate-400:not(.card-shine *) {
-  color: #786f64;
-}
-
-html[data-theme='warm-light'] .text-slate-500:not(.card-shine *) {
-  color: #9e9488;
-}
+html[data-theme='warm-light'] .text-slate-400:not(.card-shine *) { color: #746c60; }
+html[data-theme='warm-light'] .text-slate-500:not(.card-shine *) { color: #9a9080; }
 
 html[data-theme='warm-light'] .bg-slate-900:not(.card-shine *),
 html[data-theme='warm-light'] .bg-slate-950:not(.card-shine *),
-html[data-theme='warm-light'] .bg-slate-800:not(.card-shine *) {
-  background-color: #fbf8f2;
-}
+html[data-theme='warm-light'] .bg-slate-800:not(.card-shine *) { background-color: #faf6ee; }
 
 html[data-theme='warm-light'] .bg-slate-900\/80,
 html[data-theme='warm-light'] .bg-slate-950\/80,
-html[data-theme='warm-light'] .bg-slate-800\/80 {
-  background-color: rgba(251, 248, 242, 0.92);
-}
+html[data-theme='warm-light'] .bg-slate-800\/80 { background-color: rgba(250, 246, 238, 0.92); }
 
 html[data-theme='warm-light'] .bg-slate-900\/60,
 html[data-theme='warm-light'] .bg-slate-950\/60,
 html[data-theme='warm-light'] .bg-slate-900\/50,
-html[data-theme='warm-light'] .bg-slate-800\/50 {
-  background-color: rgba(238, 231, 220, 0.8);
-}
+html[data-theme='warm-light'] .bg-slate-800\/50 { background-color: rgba(235, 228, 215, 0.80); }
 
-html[data-theme='warm-light'] .bg-slate-950\/98 {
-  background-color: rgba(243, 238, 228, 0.96);
-}
+html[data-theme='warm-light'] .bg-slate-950\/98 { background-color: rgba(245, 240, 232, 0.97); }
 
 html[data-theme='warm-light'] .hover\:bg-slate-800:hover,
-html[data-theme='warm-light'] .hover\:bg-slate-900:hover {
-  background-color: #eae3d5;
-}
+html[data-theme='warm-light'] .hover\:bg-slate-900:hover { background-color: #e8e0d0; }
 
 html[data-theme='warm-light'] .hover\:bg-white\/5:hover,
-html[data-theme='warm-light'] .hover\:bg-white\/10:hover {
-  background-color: rgba(70, 55, 40, 0.06);
-}
+html[data-theme='warm-light'] .hover\:bg-white\/10:hover { background-color: rgba(80, 60, 40, 0.06); }
 
 html[data-theme='warm-light'] .border-white\/10,
 html[data-theme='warm-light'] .border-white\/5,
 html[data-theme='warm-light'] .border-white\/15,
 html[data-theme='warm-light'] .border-white\/20,
 html[data-theme='warm-light'] .border-slate-800,
-html[data-theme='warm-light'] .border-slate-700 {
-  border-color: rgba(70, 55, 40, 0.12);
-}
+html[data-theme='warm-light'] .border-slate-700 { border-color: rgba(80, 60, 40, 0.10); }
 
 html[data-theme='warm-light'] input:not([type="checkbox"]):not([type="radio"]),
 html[data-theme='warm-light'] select,
 html[data-theme='warm-light'] textarea {
   background-color: #faf6ee !important;
-  color: #2d2925 !important;
-  border-color: rgba(70, 55, 40, 0.18) !important;
+  color: #2a2420 !important;
+  border-color: rgba(80, 60, 40, 0.16) !important;
 }
-
 html[data-theme='warm-light'] input::placeholder,
-html[data-theme='warm-light'] textarea::placeholder {
-  color: #9e9488 !important;
-}
+html[data-theme='warm-light'] textarea::placeholder { color: #9a9080 !important; }

@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import SupabaseSyncProvider from "@/components/SupabaseSyncProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
+
+const inter = Inter({
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
+  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
 
 export const metadata: Metadata = {
   title: "MCC Cashback & Credit Card Spending Tracker",
@@ -16,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" suppressHydrationWarning>
+    <html lang="vi" suppressHydrationWarning className={inter.variable}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -39,7 +48,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased min-h-screen flex flex-col selection:bg-amber-500 selection:text-slate-950">
+      <body className="antialiased min-h-screen flex flex-col selection:bg-amber-500/30 selection:text-inherit font-sans">
         <ThemeProvider>
           <SupabaseSyncProvider />
           <Navbar />
