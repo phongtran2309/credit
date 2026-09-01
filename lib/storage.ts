@@ -125,6 +125,7 @@ export function updateTransaction(id: string, updates: Partial<Transaction>): Tr
     if (targetTx) {
       (async () => {
         try {
+          const noteText = targetTx.note || targetTx.mccName || null;
           await client
             .from("transactions")
             .update({
@@ -132,9 +133,8 @@ export function updateTransaction(id: string, updates: Partial<Transaction>): Tr
               mcc_code: targetTx.mccCode,
               amount: targetTx.amount,
               transaction_date: targetTx.transactionDate,
-              cashback_rate: targetTx.cashbackRate,
               cashback_amount: targetTx.cashbackAmount,
-              note: targetTx.note || null,
+              note: noteText,
             })
             .eq("id", id);
         } catch (e) {
@@ -179,7 +179,10 @@ export function getStoredCards(): CreditCard[] {
       return DEFAULT_CARDS;
     }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
+    const version = localStorage.getItem("mcc_data_version");
+    if (version !== CURRENT_DATA_VERSION) {
+      localStorage.setItem("mcc_data_version", CURRENT_DATA_VERSION);
+      localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(DEFAULT_CARDS));
       return DEFAULT_CARDS;
     }
     return parsed;
@@ -193,6 +196,7 @@ export function saveCards(cards: CreditCard[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(cards));
+    window.dispatchEvent(new Event("cards_updated"));
   } catch (e) {
     console.error("Lỗi lưu cards vào localStorage:", e);
   }
@@ -403,18 +407,13 @@ export async function syncTransactionsFromSupabase(): Promise<Transaction[] | nu
 
     if (error || !data) return null;
 
-    const txList: Transaction[] = data.map((d: any) => {
+    const supabaseTxs: Transaction[] = data.map((d: any) => {
       const amount = Number(d.amount || 0);
       const cashbackAmount = Number(d.cashback_amount || 0);
-      let calculatedRate = Number(d.cashback_rate);
-
-      if (isNaN(calculatedRate) || calculatedRate <= 0) {
-        if (amount > 0 && cashbackAmount > 0) {
-          calculatedRate = Number(((cashbackAmount / amount) * 100).toFixed(2));
-        } else {
-          calculatedRate = 0;
-        }
-      }
+      const calculatedRate =
+        amount > 0 && cashbackAmount > 0
+          ? Number(((cashbackAmount / amount) * 100).toFixed(2))
+          : 0;
 
       return {
         id: d.id,
@@ -433,11 +432,37 @@ export async function syncTransactionsFromSupabase(): Promise<Transaction[] | nu
       };
     });
 
-    saveTransactions(txList);
-    if (typeof window !== "undefined") {
-      window.dispatchEvent(new Event("transaction_updated"));
+    const localTxs = getStoredTransactions();
+    const remoteIds = new Set(supabaseTxs.map((t) => t.id));
+    const localOnly = localTxs.filter((t) => !remoteIds.has(t.id) && !t.id.startsWith("tx-sample-"));
+
+    // Sync any local transactions that aren't on Supabase yet
+    for (const missing of localOnly) {
+      syncTransactionToSupabase(missing);
     }
-    return txList;
+
+    // Merge: retain local details if available
+    const combinedMap = new Map<string, Transaction>();
+    supabaseTxs.forEach((t) => combinedMap.set(t.id, t));
+    localTxs.forEach((t) => {
+      if (combinedMap.has(t.id)) {
+        const remote = combinedMap.get(t.id)!;
+        combinedMap.set(t.id, {
+          ...remote,
+          ...t,
+          cashbackRate: t.amount > 0 ? Number(((t.cashbackAmount / t.amount) * 100).toFixed(2)) : t.cashbackRate,
+        });
+      } else {
+        combinedMap.set(t.id, t);
+      }
+    });
+
+    const mergedList = Array.from(combinedMap.values()).sort(
+      (a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
+    );
+
+    saveTransactions(mergedList);
+    return mergedList;
   } catch (e) {
     console.warn("Lỗi sync transactions từ Supabase:", e);
     return null;
@@ -458,15 +483,20 @@ async function syncTransactionToSupabase(tx: Transaction) {
   if (!client) return;
 
   try {
-    await client.from("transactions").insert({
+    const noteText = tx.mccName
+      ? tx.note
+        ? `${tx.mccName} (${tx.note})`
+        : tx.mccName
+      : tx.note || null;
+
+    await client.from("transactions").upsert({
       id: tx.id,
       card_id: tx.cardId,
       mcc_code: tx.mccCode,
       amount: tx.amount,
       transaction_date: tx.transactionDate,
-      cashback_rate: tx.cashbackRate,
       cashback_amount: tx.cashbackAmount,
-      note: tx.note || null,
+      note: noteText,
     });
   } catch (e) {
     console.warn("Không thể đồng bộ giao dịch lên Supabase:", e);
