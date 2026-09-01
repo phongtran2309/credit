@@ -97,15 +97,15 @@ export default function ThemeToggle({ variant = "dropdown", className = "" }: Th
   }
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
+    <div className={`relative shrink-0 ${className}`} ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         title={`Chuyển giao diện: Hiện tại là ${currentOption.name}`}
         aria-label="Thay đổi theme"
-        className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
+        className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition-all cursor-pointer whitespace-nowrap shrink-0"
       >
         <CurrentIcon className="w-4 h-4 text-amber-400 shrink-0" />
-        <span className="hidden lg:inline text-xs font-medium">{currentOption.shortName}</span>
+        <span className="hidden lg:inline text-xs font-medium whitespace-nowrap">{currentOption.shortName}</span>
       </button>
 
       {isOpen && (

@@ -51,20 +51,20 @@ export default function Navbar() {
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b border-white/10 glass-panel">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-16 flex items-center justify-between gap-2 md:gap-4">
           {/* Logo & Brand */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-vib-blue via-vib-sky to-vib-gold flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+          <Link href="/" className="flex items-center gap-3 group shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-vib-blue via-vib-sky to-vib-gold flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform shrink-0">
               <CreditCard className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5 font-bold text-lg tracking-tight text-white">
+              <div className="flex items-center gap-1.5 font-bold text-base sm:text-lg tracking-tight text-white whitespace-nowrap">
                 <span>MCC Cashback</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30 flex items-center gap-1">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30 flex items-center gap-1 shrink-0">
                   <Sparkles className="w-3 h-3" /> Multi-Bank
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium hidden sm:block">
+              <p className="text-[11px] text-slate-400 font-medium hidden lg:block whitespace-nowrap">
                 Tra cứu MCC & Tối ưu Hoàn tiền Thẻ tín dụng
               </p>
             </div>
@@ -73,7 +73,7 @@ export default function Navbar() {
           {!isLoginPage ? (
             <>
               {/* Nav links desktop */}
-              <nav className="hidden md:flex items-center gap-1">
+              <nav className="hidden md:flex items-center gap-1 lg:gap-1.5 shrink-0">
                 {navItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -81,33 +81,33 @@ export default function Navbar() {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                      className={`flex items-center gap-2 px-2.5 lg:px-3.5 py-2 rounded-lg text-xs lg:text-sm font-medium transition-all whitespace-nowrap ${
                         isActive
                           ? "bg-white/10 text-amber-300 shadow-sm border border-white/10"
                           : "text-slate-300 hover:text-white hover:bg-white/5"
                       }`}
                     >
                       <Icon
-                        className={`w-4 h-4 ${
+                        className={`w-4 h-4 shrink-0 ${
                           isActive ? "text-amber-400" : "text-slate-400"
                         }`}
                       />
-                      {item.name}
+                      <span>{item.name}</span>
                     </Link>
                   );
                 })}
               </nav>
 
               {/* Action buttons */}
-              <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                 {/* Theme Selector */}
                 <ThemeToggle />
 
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-sm font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs sm:text-sm font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap shrink-0"
                 >
-                  <PlusCircle className="w-4 h-4 text-slate-950" />
+                  <PlusCircle className="w-4 h-4 text-slate-950 shrink-0" />
                   <span className="hidden sm:inline">Ghi nhận giao dịch</span>
                   <span className="sm:hidden">Thêm</span>
                 </button>
@@ -117,14 +117,14 @@ export default function Navbar() {
                   onClick={handleLogout}
                   title="Khóa phiên & Đăng xuất an toàn"
                   disabled={loggingOut}
-                  className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all cursor-pointer"
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all cursor-pointer shrink-0"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <ThemeToggle />
             </div>
           )}

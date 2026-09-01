@@ -56,7 +56,7 @@ export default function RootLayout({
             {children}
           </main>
           <footer className="border-t border-white/10 glass-panel py-6 mt-12 text-center text-xs text-slate-400">
-            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div>
                 <p className="font-semibold text-slate-300">
                   💳 MCC Cashback & Spending Tracker • Pro Edition
