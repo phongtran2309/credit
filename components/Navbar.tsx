@@ -15,6 +15,8 @@ import {
 import { useState } from "react";
 import TransactionModal from "@/components/TransactionModal";
 
+import ThemeToggle from "@/components/ThemeToggle";
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -68,7 +70,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {!isLoginPage && (
+          {!isLoginPage ? (
             <>
               {/* Nav links desktop */}
               <nav className="hidden md:flex items-center gap-1">
@@ -98,6 +100,9 @@ export default function Navbar() {
 
               {/* Action buttons */}
               <div className="flex items-center gap-2 sm:gap-3">
+                {/* Theme Selector */}
+                <ThemeToggle />
+
                 <button
                   onClick={() => setIsModalOpen(true)}
                   className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-sm font-semibold shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -118,6 +123,10 @@ export default function Navbar() {
                 </button>
               </div>
             </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+            </div>
           )}
         </div>
 

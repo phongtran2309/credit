@@ -6,3 +6,5 @@ export { default as StatementProgress } from "./StatementProgress";
 export { default as SpendingChart } from "./SpendingChart";
 export { default as TransactionModal } from "./TransactionModal";
 export { default as CardModal } from "./CardModal";
+export { default as ThemeToggle } from "./ThemeToggle";
+export { ThemeProvider, useTheme } from "./ThemeProvider";

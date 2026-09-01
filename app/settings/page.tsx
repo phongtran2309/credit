@@ -10,6 +10,8 @@ import {
   importDataFromJson,
   resetToDefaults,
 } from "@/lib/storage";
+import { useTheme, ThemeMode } from "@/components/ThemeProvider";
+import { THEME_OPTIONS } from "@/components/ThemeToggle";
 import {
   Settings,
   Database,
@@ -26,9 +28,11 @@ import {
   Lock,
   KeyRound,
   ShieldAlert,
+  Palette,
 } from "lucide-react";
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseKey, setSupabaseKey] = useState("");
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
@@ -109,10 +113,71 @@ export default function SettingsPage() {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/20 mb-2">
           <Settings className="w-3.5 h-3.5" /> Quản lý Hệ thống & Đồng bộ
         </div>
-        <h1 className="text-2xl sm:text-4xl font-black text-white">Cài đặt & Cơ sở dữ liệu</h1>
+        <h1 className="text-2xl sm:text-4xl font-black text-white">Cài đặt & Giao diện</h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Cấu hình kết nối Supabase Cloud Sync, sao lưu & khôi phục dữ liệu chi tiêu.
+          Tùy chỉnh chế độ hiển thị (Theme), cấu hình Supabase Cloud Sync và sao lưu dữ liệu.
         </p>
+      </div>
+
+      {/* Theme Selection Box */}
+      <div className="p-6 md:p-8 rounded-3xl glass-panel border border-white/10 space-y-6">
+        <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <Palette className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              Chế độ Hiển thị & Giao diện (3 Themes)
+            </h3>
+            <p className="text-xs text-slate-400">
+              Chọn màu sắc phù hợp với môi trường ánh sáng và thị giác của bạn.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {THEME_OPTIONS.map((opt) => {
+            const Icon = opt.icon;
+            const isSelected = theme === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setTheme(opt.id)}
+                className={`p-5 rounded-2xl text-left border transition-all relative flex flex-col justify-between space-y-3 cursor-pointer ${
+                  isSelected
+                    ? "border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/30 shadow-lg shadow-amber-500/10"
+                    : "border-white/10 hover:border-white/20 bg-slate-900/60 hover:bg-slate-900/90"
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${opt.accentColor}`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  {isSelected && (
+                    <span className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-slate-950">
+                      <Check className="w-3 h-3 stroke-[3]" /> Đang chọn
+                    </span>
+                  )}
+                </div>
+
+                <div>
+                  <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
+                    {opt.name}
+                    {opt.id === "dim" && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-normal border border-emerald-500/30">
+                        Chống loá
+                      </span>
+                    )}
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    {opt.desc}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Security & Access Protection Box */}
