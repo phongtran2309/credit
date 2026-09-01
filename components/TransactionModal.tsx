@@ -2,17 +2,18 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
-import { X, CreditCard as CardIcon, Tag, Calendar, DollarSign, Sparkles, Check, Search, ChevronDown, AlertTriangle } from "lucide-react";
-import { getStoredCards, getStoredTransactions, addTransaction } from "@/lib/storage";
+import { X, CreditCard as CardIcon, Tag, Calendar, DollarSign, Sparkles, Check, Search, ChevronDown, AlertTriangle, Edit3 } from "lucide-react";
+import { getStoredCards, getStoredTransactions, addTransaction, updateTransaction } from "@/lib/storage";
 import { searchMccCodes, getMccByCode } from "@/lib/data/mcc-database";
 import { getRecommendedCardsForMcc } from "@/lib/data/cards-database";
-import { CreditCard, MccItem } from "@/types";
+import { CreditCard, MccItem, Transaction } from "@/types";
 import { formatCurrencyVND, calculateStatementCycle, isDateInCycle } from "@/lib/statement-helper";
 
 interface TransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  editingTransaction?: Transaction | null;
   defaultCardId?: string;
   defaultMccCode?: string;
   defaultMccName?: string;
@@ -35,6 +36,7 @@ export default function TransactionModal({
   isOpen,
   onClose,
   onSuccess,
+  editingTransaction,
   defaultCardId,
   defaultMccCode,
   defaultMccName,
@@ -47,14 +49,15 @@ export default function TransactionModal({
   useEffect(() => {
     setMounted(true);
   }, []);
-  const [selectedCardId, setSelectedCardId] = useState<string>(defaultCardId || "");
-  const [mccCode, setMccCode] = useState<string>(defaultMccCode || "");
-  const [mccName, setMccName] = useState<string>(defaultMccName || "");
-  const [mccSearchQuery, setMccSearchQuery] = useState<string>(defaultMccCode ? `${defaultMccCode}` : "");
+
+  const [selectedCardId, setSelectedCardId] = useState<string>("");
+  const [mccCode, setMccCode] = useState<string>("");
+  const [mccName, setMccName] = useState<string>("");
+  const [mccSearchQuery, setMccSearchQuery] = useState<string>("");
   const [isMccDropdownOpen, setIsMccDropdownOpen] = useState<boolean>(false);
-  const [amount, setAmount] = useState<number | "">(defaultAmount !== undefined ? defaultAmount : "");
+  const [amount, setAmount] = useState<number | "">("");
   const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
-  const [cashbackRate, setCashbackRate] = useState<number>(defaultCashbackRate || 0);
+  const [cashbackRate, setCashbackRate] = useState<number>(0);
   const [note, setNote] = useState<string>("");
   const [isOnline, setIsOnline] = useState<boolean>(false);
   const [isForeign, setIsForeign] = useState<boolean>(false);
@@ -62,13 +65,51 @@ export default function TransactionModal({
 
   const mccDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Sync state when modal opens or editing target changes
   useEffect(() => {
-    const loadedCards = getStoredCards();
-    setCards(loadedCards);
-    if (!selectedCardId && loadedCards.length > 0) {
-      setSelectedCardId(defaultCardId || loadedCards[0].id);
+    if (isOpen) {
+      const loadedCards = getStoredCards();
+      setCards(loadedCards);
+
+      if (editingTransaction) {
+        setSelectedCardId(editingTransaction.cardId);
+        const code = editingTransaction.mccCode && editingTransaction.mccCode !== "0000" ? editingTransaction.mccCode : "";
+        setMccCode(code);
+        setMccName(editingTransaction.mccName || "");
+        if (code) {
+          const item = getMccByCode(code);
+          setMccSearchQuery(item ? `${item.code} - ${item.name}` : code);
+        } else {
+          setMccSearchQuery("");
+        }
+        setAmount(editingTransaction.amount);
+        setDate(editingTransaction.transactionDate || new Date().toISOString().split("T")[0]);
+        setCashbackRate(editingTransaction.cashbackRate || 0);
+        setNote(editingTransaction.note || "");
+        setIsOnline(Boolean(editingTransaction.isOnline));
+        setIsForeign(Boolean(editingTransaction.isForeign));
+        setIsSavedCard(Boolean(editingTransaction.isSavedCard));
+      } else {
+        setSelectedCardId(defaultCardId || (loadedCards.length > 0 ? loadedCards[0].id : ""));
+        const code = defaultMccCode || "";
+        setMccCode(code);
+        setMccName(defaultMccName || "");
+        if (code) {
+          const item = getMccByCode(code);
+          setMccSearchQuery(item ? `${item.code} - ${item.name}` : code);
+        } else {
+          setMccSearchQuery("");
+        }
+        setAmount(defaultAmount !== undefined ? defaultAmount : "");
+        setDate(new Date().toISOString().split("T")[0]);
+        setCashbackRate(defaultCashbackRate || 0);
+        setNote("");
+        setIsOnline(false);
+        setIsForeign(false);
+        setIsSavedCard(false);
+      }
     }
-  }, [defaultCardId, selectedCardId]);
+  }, [isOpen, editingTransaction, defaultCardId, defaultMccCode, defaultMccName, defaultAmount, defaultCashbackRate]);
 
   // Click outside to close MCC dropdown
   useEffect(() => {
@@ -81,34 +122,18 @@ export default function TransactionModal({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Set initial MCC text only when defaultMccCode prop is provided
+  // Update cashback rate whenever card, MCC, or conditions change (even if MCC is empty!)
   useEffect(() => {
-    if (defaultMccCode) {
-      const item = getMccByCode(defaultMccCode);
-      if (item) {
-        setMccCode(item.code);
-        setMccSearchQuery(`${item.code} - ${item.name}`);
-        if (defaultMccName) {
-          setMccName(defaultMccName);
-        }
-      }
-    }
-  }, [defaultMccCode, defaultMccName]);
-
-  // Update cashback rate whenever card, MCC, or conditions change
-  useEffect(() => {
-    if (!mccCode || !selectedCardId) return;
-    const mccItem = getMccByCode(mccCode);
-    if (mccItem && selectedCardId) {
-      const recs = getRecommendedCardsForMcc(
-        mccItem,
-        { isOnline, isForeign, isSavedCard, amount: Number(amount) || 0 },
-        cards.length > 0 ? cards : undefined
-      );
-      const cardRec = recs.find((r) => r.card.id === selectedCardId);
-      if (cardRec) {
-        setCashbackRate(cardRec.cashbackRate);
-      }
+    if (!selectedCardId) return;
+    const currentMccItem = mccCode ? getMccByCode(mccCode) : null;
+    const recs = getRecommendedCardsForMcc(
+      currentMccItem,
+      { isOnline, isForeign, isSavedCard, amount: Number(amount) || 0 },
+      cards.length > 0 ? cards : undefined
+    );
+    const cardRec = recs.find((r) => r.card.id === selectedCardId);
+    if (cardRec) {
+      setCashbackRate(cardRec.cashbackRate);
     }
   }, [mccCode, selectedCardId, isOnline, isForeign, isSavedCard, amount, cards]);
 
@@ -116,10 +141,10 @@ export default function TransactionModal({
     () => cards.find((c) => c.id === selectedCardId) || cards[0],
     [cards, selectedCardId]
   );
-  const mccItem = useMemo(() => getMccByCode(mccCode), [mccCode]);
+  const mccItem = useMemo(() => (mccCode ? getMccByCode(mccCode) : null), [mccCode]);
 
   const matchedRec = useMemo(() => {
-    if (!mccItem || !selectedCard) return null;
+    if (!selectedCard) return null;
     const recs = getRecommendedCardsForMcc(
       mccItem,
       { isOnline, isForeign, isSavedCard, amount: Number(amount) || 0 },
@@ -149,10 +174,14 @@ export default function TransactionModal({
     const cardCap = selectedCard.maxCashbackPerMonth || Infinity;
     const catCap = matchedRec?.maxCategoryCap || matchedRec?.rule?.maxCashbackPerCategory || selectedCard.maxCashbackPerCategory;
 
-    // Cycle tracking
+    // Cycle tracking (excluding current transaction if editing so limits aren't double counted)
     const cycleInfo = calculateStatementCycle(selectedCard.statementDay, selectedCard.dueDay, new Date(date || new Date()));
     const storedTxs = getStoredTransactions();
-    const cycleTxs = storedTxs.filter((tx) => tx.cardId === selectedCard.id && isDateInCycle(tx.transactionDate, cycleInfo));
+    const cycleTxs = storedTxs.filter((tx) =>
+      tx.cardId === selectedCard.id &&
+      isDateInCycle(tx.transactionDate, cycleInfo) &&
+      (!editingTransaction || tx.id !== editingTransaction.id)
+    );
 
     const cycleTotalEarned = cycleTxs.reduce((sum, tx) => sum + (tx.cashbackAmount || 0), 0);
 
@@ -195,7 +224,7 @@ export default function TransactionModal({
       categoryMaxCap: catCap,
       cardMaxCap: cardCap,
     };
-  }, [selectedCard, matchedRec, isSavedCard, amount, cashbackRate, date, mccItem]);
+  }, [selectedCard, matchedRec, isSavedCard, amount, cashbackRate, date, mccItem, editingTransaction]);
 
   // Lock body scroll & listen for Escape key when modal is open
   useEffect(() => {
@@ -220,7 +249,7 @@ export default function TransactionModal({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted || typeof document === "undefined") return null;
 
   const filteredMccResults = searchMccCodes(mccSearchQuery);
 
@@ -228,6 +257,11 @@ export default function TransactionModal({
     setMccCode(item.code);
     setMccSearchQuery(`${item.code} - ${item.name}`);
     setIsMccDropdownOpen(false);
+  };
+
+  const handleClearMcc = () => {
+    setMccCode("");
+    setMccSearchQuery("");
   };
 
   const handleQuickTagClick = (tag: typeof QUICK_MCC_TAGS[0]) => {
@@ -243,25 +277,51 @@ export default function TransactionModal({
     const numAmount = Number(amount);
     if (!numAmount || numAmount <= 0) return;
 
-    addTransaction({
-      cardId: selectedCardId || (cards[0]?.id ?? "vib-super-card"),
-      mccCode: mccCode || "0000",
-      mccName: mccName || (mccCode ? `Mã MCC ${mccCode}` : "Chi tiêu khác"),
-      amount: numAmount,
-      transactionDate: date,
-      cashbackRate: Number(cashbackRate),
-      cashbackAmount: actualCashback,
-      note,
-      isOnline,
-      isForeign,
-      isSavedCard,
-    });
+    const defaultName = isOnline
+      ? isForeign
+        ? "Chi tiêu Online Ngoại tệ"
+        : "Chi tiêu Online Nội địa"
+      : isForeign
+      ? "Chi tiêu Ngoại tệ POS"
+      : isSavedCard
+      ? "Giao dịch Lưu thẻ"
+      : "Chi tiêu giao dịch";
+
+    const finalMccName = mccName.trim() || (mccCode ? `Mã MCC ${mccCode}` : defaultName);
+
+    if (editingTransaction) {
+      updateTransaction(editingTransaction.id, {
+        cardId: selectedCardId || (cards[0]?.id ?? "vib-super-card"),
+        mccCode: mccCode || "0000",
+        mccName: finalMccName,
+        amount: numAmount,
+        transactionDate: date,
+        cashbackRate: Number(cashbackRate),
+        cashbackAmount: actualCashback,
+        note,
+        isOnline,
+        isForeign,
+        isSavedCard,
+      });
+    } else {
+      addTransaction({
+        cardId: selectedCardId || (cards[0]?.id ?? "vib-super-card"),
+        mccCode: mccCode || "0000",
+        mccName: finalMccName,
+        amount: numAmount,
+        transactionDate: date,
+        cashbackRate: Number(cashbackRate),
+        cashbackAmount: actualCashback,
+        note,
+        isOnline,
+        isForeign,
+        isSavedCard,
+      });
+    }
 
     if (onSuccess) onSuccess();
     onClose();
   };
-
-  if (!isOpen || !mounted || typeof document === "undefined") return null;
 
   return createPortal(
     <div className="fixed inset-0 z-[99999] overflow-y-auto bg-slate-950/98 backdrop-blur-2xl p-4 sm:p-6 flex min-h-screen items-center justify-center animate-in fade-in duration-200">
@@ -270,11 +330,15 @@ export default function TransactionModal({
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
-              <Sparkles className="w-5 h-5" />
+              {editingTransaction ? <Edit3 className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="font-bold text-lg text-white">Ghi nhận giao dịch chi tiêu</h3>
-              <p className="text-xs text-slate-400">Tự động tính tiền hoàn & cập nhật kỳ sao kê</p>
+              <h3 className="font-bold text-lg text-white">
+                {editingTransaction ? "Chỉnh sửa giao dịch chi tiêu" : "Ghi nhận giao dịch chi tiêu"}
+              </h3>
+              <p className="text-xs text-slate-400">
+                {editingTransaction ? "Cập nhật thông tin & tự động tính lại tiền hoàn" : "Tự động tính tiền hoàn & cập nhật kỳ sao kê"}
+              </p>
             </div>
           </div>
           <button
@@ -349,9 +413,20 @@ export default function TransactionModal({
                 <Tag className="w-3.5 h-3.5 text-amber-400" />
                 Tìm kiếm & Chọn Mã MCC:
               </span>
-              <span className="text-[11px] text-amber-400 font-mono font-bold">
-                {mccCode ? `Đang chọn: MCC ${mccCode}` : "Chưa chọn MCC"}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-amber-400 font-mono font-bold">
+                  {mccCode ? `Đang chọn: MCC ${mccCode}` : "Chưa chọn MCC (Không bắt buộc)"}
+                </span>
+                {mccCode && (
+                  <button
+                    type="button"
+                    onClick={handleClearMcc}
+                    className="text-[10px] text-rose-400 hover:text-rose-300 underline"
+                  >
+                    Bỏ chọn
+                  </button>
+                )}
+              </div>
             </label>
 
             <div className="relative">
@@ -363,12 +438,26 @@ export default function TransactionModal({
                 value={mccSearchQuery}
                 onFocus={() => setIsMccDropdownOpen(true)}
                 onChange={(e) => {
-                  setMccSearchQuery(e.target.value);
+                  const val = e.target.value;
+                  setMccSearchQuery(val);
+                  if (!val.trim()) {
+                    setMccCode("");
+                  }
                   setIsMccDropdownOpen(true);
                 }}
-                placeholder="Nhập mã MCC (6300, 5812...), tên ngành (Bảo hiểm, Học phí) hoặc thương hiệu..."
-                className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-800 border border-white/10 text-white text-sm focus:border-amber-400 focus:outline-none placeholder:text-slate-500"
+                placeholder="Nhập mã MCC (6300, 5812...) hoặc để trống nếu chi tiêu Online / Ngoại tệ..."
+                className="w-full pl-10 pr-16 py-3 rounded-xl bg-slate-800 border border-white/10 text-white text-sm focus:border-amber-400 focus:outline-none placeholder:text-slate-500"
               />
+              {mccSearchQuery && (
+                <button
+                  type="button"
+                  onClick={handleClearMcc}
+                  className="absolute inset-y-0 right-8 pr-1 flex items-center text-slate-400 hover:text-white"
+                  title="Xóa MCC đã chọn"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setIsMccDropdownOpen(!isMccDropdownOpen)}
@@ -443,7 +532,7 @@ export default function TransactionModal({
               type="text"
               value={mccName}
               onChange={(e) => setMccName(e.target.value)}
-              placeholder="VD: Haidilao, Shopee, Bảo hiểm Manulife..."
+              placeholder="VD: Haidilao, Shopee, TikTok Shop, Grab..."
               className="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-white/10 text-white text-sm focus:border-amber-400 focus:outline-none"
             />
           </div>
@@ -555,7 +644,7 @@ export default function TransactionModal({
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 transition-all hover:scale-[1.02]"
             >
               <Check className="w-4 h-4" />
-              Lưu giao dịch
+              {editingTransaction ? "Cập nhật giao dịch" : "Lưu giao dịch"}
             </button>
           </div>
         </form>

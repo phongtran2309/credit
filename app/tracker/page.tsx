@@ -11,8 +11,10 @@ import { calculateStatementCycle, isDateInCycle, formatCurrencyVND } from "@/lib
 import { Transaction, CreditCard, CardSpendingSummary } from "@/types";
 import StatementProgress from "@/components/StatementProgress";
 import SpendingChart from "@/components/SpendingChart";
+import TransactionModal from "@/components/TransactionModal";
 import {
   Trash2,
+  Edit3,
   Filter,
   PieChart as ChartIcon,
   Sparkles,
@@ -26,6 +28,8 @@ export default function TrackerPage() {
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedCardFilter, setSelectedCardFilter] = useState<string>("all");
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
 
   const loadData = () => {
     setCards(getStoredCards());
@@ -277,7 +281,7 @@ export default function TrackerPage() {
                     <th className="py-3 px-3">Nội dung</th>
                     <th className="py-3 px-3 text-right">Số tiền</th>
                     <th className="py-3 px-3 text-right">Hoàn tiền</th>
-                    <th className="py-3 px-2 text-center">Xóa</th>
+                    <th className="py-3 px-3 text-center">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -326,14 +330,26 @@ export default function TrackerPage() {
                             );
                           })()}
                         </td>
-                        <td className="py-3 px-2 text-center">
-                          <button
-                            onClick={() => handleDelete(tx.id)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-                            title="Xóa giao dịch"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                        <td className="py-3 px-3 text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setEditingTx(tx);
+                                setIsEditModalOpen(true);
+                              }}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-amber-500/15 transition-colors"
+                              title="Chỉnh sửa giao dịch"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(tx.id)}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/15 transition-colors"
+                              title="Xóa giao dịch"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -344,6 +360,17 @@ export default function TrackerPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Transaction Modal */}
+      <TransactionModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingTx(null);
+        }}
+        editingTransaction={editingTx}
+        onSuccess={loadData}
+      />
     </div>
   );
 }

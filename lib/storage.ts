@@ -91,6 +91,7 @@ export function saveTransactions(transactions: Transaction[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
+    window.dispatchEvent(new Event("transaction_updated"));
   } catch (e) {
     console.error("Lỗi lưu transactions vào localStorage:", e);
   }
