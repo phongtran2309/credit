@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-export type ThemeMode = "dark" | "dim" | "light";
+export type ThemeMode = "warm-dark" | "neutral" | "warm-light";
 
 interface ThemeContextType {
   theme: ThemeMode;
@@ -10,27 +10,32 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: "dark",
+  theme: "warm-dark",
   setTheme: () => {},
 });
 
 export const THEME_STORAGE_KEY = "mcc_app_theme";
 
+// Normalize legacy keys if any
+export function normalizeTheme(val: string | null): ThemeMode {
+  if (val === "warm-dark" || val === "neutral" || val === "warm-light") {
+    return val;
+  }
+  if (val === "dark") return "warm-dark";
+  if (val === "dim") return "neutral";
+  if (val === "light") return "warm-light";
+  return "warm-dark";
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>("dark");
+  const [theme, setThemeState] = useState<ThemeMode>("warm-dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Read from localStorage or system preference
-    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as ThemeMode | null;
-    if (savedTheme && (savedTheme === "dark" || savedTheme === "dim" || savedTheme === "light")) {
-      setThemeState(savedTheme);
-      applyThemeToDom(savedTheme);
-    } else {
-      // Default to dark
-      setThemeState("dark");
-      applyThemeToDom("dark");
-    }
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    const validTheme = normalizeTheme(saved);
+    setThemeState(validTheme);
+    applyThemeToDom(validTheme);
     setMounted(true);
   }, []);
 
@@ -40,7 +45,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.setAttribute("data-theme", newTheme);
     
     // Manage tailwind 'dark' class for compatibility
-    if (newTheme === "light") {
+    if (newTheme === "warm-light") {
       root.classList.remove("dark");
       root.classList.add("light");
     } else {

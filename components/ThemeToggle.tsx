@@ -2,37 +2,45 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useTheme, ThemeMode } from "./ThemeProvider";
-import { Moon, Sun, Eye, Check, Sparkles } from "lucide-react";
+import { Moon, Sun, Sliders, Check, Sparkles, Coffee } from "lucide-react";
 
 interface ThemeOption {
   id: ThemeMode;
   name: string;
+  shortName: string;
   desc: string;
+  badge?: string;
   icon: typeof Moon;
   accentColor: string;
 }
 
 export const THEME_OPTIONS: ThemeOption[] = [
   {
-    id: "dark",
-    name: "Tối (Midnight)",
-    desc: "Nền đen huyền bí, phong cách Fintech",
-    icon: Moon,
-    accentColor: "text-indigo-400 bg-indigo-500/10 border-indigo-500/30",
-  },
-  {
-    id: "dim",
-    name: "Dịu mắt (Eye Care)",
-    desc: "Xám than êm ái, chống chói & mỏi mắt",
-    icon: Eye,
+    id: "warm-dark",
+    name: "Tối Ấm (Warm Dark)",
+    shortName: "Tối ấm",
+    desc: "Xám than ấm áp, dịu mắt, chống chói loá",
+    badge: "Êm dịu",
+    icon: Coffee,
     accentColor: "text-amber-400 bg-amber-500/10 border-amber-500/30",
   },
   {
-    id: "light",
-    name: "Sáng (Daylight)",
-    desc: "Trắng thanh lịch, tinh gọn, rõ nét",
+    id: "neutral",
+    name: "Trung Tính (Neutral)",
+    shortName: "Trung tính",
+    desc: "Xám ghi cân bằng, không chói, dễ chịu",
+    badge: "Cân bằng",
+    icon: Sliders,
+    accentColor: "text-sky-400 bg-sky-500/10 border-sky-500/30",
+  },
+  {
+    id: "warm-light",
+    name: "Sáng Ấm (Warm Light)",
+    shortName: "Sáng ấm",
+    desc: "Nền kem ngà mềm mại, không chói gắt",
+    badge: "Mềm mại",
     icon: Sun,
-    accentColor: "text-sky-500 bg-sky-500/10 border-sky-500/30",
+    accentColor: "text-orange-400 bg-orange-500/10 border-orange-500/30",
   },
 ];
 
@@ -80,7 +88,7 @@ export default function ThemeToggle({ variant = "dropdown", className = "" }: Th
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
-              <span>{opt.name.split(" ")[0]}</span>
+              <span>{opt.shortName}</span>
             </button>
           );
         })}
@@ -97,18 +105,18 @@ export default function ThemeToggle({ variant = "dropdown", className = "" }: Th
         className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 transition-all cursor-pointer"
       >
         <CurrentIcon className="w-4 h-4 text-amber-400 shrink-0" />
-        <span className="hidden lg:inline text-xs font-medium">{currentOption.name.split(" ")[0]}</span>
+        <span className="hidden lg:inline text-xs font-medium">{currentOption.shortName}</span>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 p-2 rounded-2xl glass-panel shadow-2xl border border-white/15 z-50 animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 mt-2 w-72 p-2 rounded-2xl glass-panel shadow-2xl border border-white/15 z-50 animate-in fade-in zoom-in-95 duration-150">
           <div className="px-3 py-2 border-b border-white/10 mb-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Chọn Giao Diện</span>
+              <span>Chọn Giao Diện (3 Themes)</span>
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              Chọn màu sắc phù hợp với mắt bạn
+              Đã tối ưu êm dịu, không còn tone tối gắt hay sáng chói
             </p>
           </div>
 
@@ -136,9 +144,9 @@ export default function ThemeToggle({ variant = "dropdown", className = "" }: Th
                     <div>
                       <div className="text-xs font-bold leading-none mb-1 flex items-center gap-1.5">
                         {opt.name}
-                        {opt.id === "dim" && (
-                          <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            Chống mỏi mắt
+                        {opt.badge && (
+                          <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            {opt.badge}
                           </span>
                         )}
                       </div>

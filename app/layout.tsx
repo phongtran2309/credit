@@ -22,9 +22,12 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               try {
-                const theme = localStorage.getItem('mcc_app_theme') || 'dark';
+                let theme = localStorage.getItem('mcc_app_theme') || 'warm-dark';
+                if (theme === 'dark') theme = 'warm-dark';
+                if (theme === 'dim') theme = 'neutral';
+                if (theme === 'light') theme = 'warm-light';
                 document.documentElement.setAttribute('data-theme', theme);
-                if (theme === 'light') {
+                if (theme === 'warm-light') {
                   document.documentElement.classList.remove('dark');
                   document.documentElement.classList.add('light');
                 } else {

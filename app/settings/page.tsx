@@ -164,9 +164,9 @@ export default function SettingsPage() {
                 <div>
                   <h4 className="font-bold text-sm text-white flex items-center gap-1.5">
                     {opt.name}
-                    {opt.id === "dim" && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-normal border border-emerald-500/30">
-                        Chống loá
+                    {opt.badge && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-normal border border-amber-500/30">
+                        {opt.badge}
                       </span>
                     )}
                   </h4>
