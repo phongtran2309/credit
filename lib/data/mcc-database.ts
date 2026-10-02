@@ -478,6 +478,35 @@ function buildFullMccDatabase(): MccItem[] {
   return items;
 }
 
+// Function to extract and register MCC codes from all cards in /cards
+export function extractMccItemsFromCards(cards: any[]): MccItem[] {
+  const extracted: MccItem[] = [];
+  if (!Array.isArray(cards)) return extracted;
+
+  for (const card of cards) {
+    if (!card || !Array.isArray(card.rules)) continue;
+    for (const rule of card.rules) {
+      if (!rule || !Array.isArray(rule.mccCodes)) continue;
+      for (const rawCode of rule.mccCodes) {
+        if (!rawCode) continue;
+        const code = String(rawCode).trim();
+        if (!code) continue;
+
+        const dictEntry = MCC_DICTIONARY[code];
+        extracted.push({
+          code,
+          category: dictEntry?.category || rule.category || "Khác",
+          name: dictEntry?.name || `${rule.category || "Danh mục"} (MCC ${code})`,
+          description: dictEntry?.description || rule.note || `Giao dịch ${rule.category} theo thẻ ${card.name}`,
+          popularBrands: dictEntry?.popularBrands || [],
+          isOnlineEligible: dictEntry?.isOnlineEligible ?? true,
+        });
+      }
+    }
+  }
+  return extracted;
+}
+
 export const ALL_MCC_ITEMS: MccItem[] = buildFullMccDatabase();
 
 let dynamicMccItems: MccItem[] = ALL_MCC_ITEMS;
@@ -486,47 +515,128 @@ export function setDynamicMccItems(items: MccItem[]): void {
   dynamicMccItems = items;
 }
 
+// Ensure all MCC codes from all cards are always present and never wiped out
 export function getAllMccItems(): MccItem[] {
+  const itemsMap = new Map<string, MccItem>();
+
+  // 1. Thêm toàn bộ danh mục từ Dictionary và RAW_VIB_MCC_DATA cơ bản
+  for (const item of ALL_MCC_ITEMS) {
+    itemsMap.set(item.code, item);
+  }
+
+  // 2. Tự động quét và bổ sung toàn bộ mã MCC từ các thẻ trong /cards
   if (typeof window !== "undefined") {
     try {
+      const rawCards = localStorage.getItem("mcc_custom_cards");
+      if (rawCards) {
+        const cards = JSON.parse(rawCards);
+        const cardMccs = extractMccItemsFromCards(cards);
+        for (const item of cardMccs) {
+          const existing = itemsMap.get(item.code);
+          if (!existing) {
+            itemsMap.set(item.code, item);
+          } else if (existing.category === "Khác" && item.category !== "Khác") {
+            itemsMap.set(item.code, { ...existing, category: item.category, name: item.name });
+          }
+        }
+      }
+
+      // 3. Kết hợp với các mã MCC lưu trong localStorage / sync từ Supabase
       const cached = localStorage.getItem("mcc_custom_codes");
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+        if (Array.isArray(parsed)) {
+          for (const item of parsed) {
+            if (!item || !item.code) continue;
+            const code = String(item.code).trim();
+            const existing = itemsMap.get(code);
+            if (!existing) {
+              itemsMap.set(code, item);
+            } else if (existing.category === "Khác" && item.category && item.category !== "Khác") {
+              itemsMap.set(code, { ...existing, category: item.category, name: item.name || existing.name });
+            }
+          }
         }
       }
-    } catch {
-      // Fallback
+    } catch (e) {
+      console.warn("Lỗi khi kết hợp danh sách MCC từ cards / cache:", e);
     }
   }
-  return dynamicMccItems;
+
+  // 4. Bổ sung các dynamicMccItems nếu có
+  if (dynamicMccItems && dynamicMccItems !== ALL_MCC_ITEMS) {
+    for (const item of dynamicMccItems) {
+      if (!itemsMap.has(item.code)) {
+        itemsMap.set(item.code, item);
+      }
+    }
+  }
+
+  return Array.from(itemsMap.values());
 }
 
 // Fast search function supporting MCC code, Vietnamese query, Category, Brand name
 export function searchMccCodes(query: string): MccItem[] {
   const items = getAllMccItems();
   const cleanQuery = query.trim().toLowerCase();
-  if (!cleanQuery) return items.slice(0, 30);
+  if (!cleanQuery) return items.slice(0, 40);
 
   // Exact code match prioritized
-  const exactCode = items.find((item) => item.code === cleanQuery);
-  if (exactCode) {
-    return [exactCode, ...items.filter((i) => i.code !== cleanQuery && i.code.startsWith(cleanQuery))];
-  }
+  const exactCode = items.find((item) => item.code.toLowerCase() === cleanQuery);
+  const prefixMatches = items.filter(
+    (i) => i.code.toLowerCase() !== cleanQuery && i.code.toLowerCase().startsWith(cleanQuery)
+  );
 
-  // Search by code prefix, name, category, brand, description
-  return items.filter((item) => {
-    if (item.code.includes(cleanQuery)) return true;
+  // Search by code, name, category, brand, description
+  const otherMatches = items.filter((item) => {
+    if (item.code.toLowerCase() === cleanQuery || item.code.toLowerCase().startsWith(cleanQuery)) return false;
+    if (item.code.toLowerCase().includes(cleanQuery)) return true;
     if (item.name.toLowerCase().includes(cleanQuery)) return true;
     if (item.category.toLowerCase().includes(cleanQuery)) return true;
     if (item.description.toLowerCase().includes(cleanQuery)) return true;
     if (item.popularBrands?.some((b) => b.toLowerCase().includes(cleanQuery))) return true;
     return false;
-  }).slice(0, 40);
+  });
+
+  const combined = [
+    ...(exactCode ? [exactCode] : []),
+    ...prefixMatches,
+    ...otherMatches,
+  ];
+
+  // Nếu người dùng nhập mã 4 số cụ thể nhưng chưa có trong hệ thống, tự động tạo để người dùng vẫn tra cứu được thẻ
+  if (combined.length === 0 && /^\d{4}$/.test(cleanQuery)) {
+    combined.push({
+      code: cleanQuery,
+      category: "Chi tiêu khác",
+      name: `Mã MCC ${cleanQuery}`,
+      description: `Giao dịch tra cứu theo mã danh mục MCC ${cleanQuery}`,
+      popularBrands: [],
+      isOnlineEligible: true,
+    });
+  }
+
+  return combined.slice(0, 40);
 }
 
 export function getMccByCode(code: string): MccItem | undefined {
   const items = getAllMccItems();
-  return items.find((item) => item.code === code);
+  const clean = String(code).trim().toLowerCase();
+  const found = items.find((item) => item.code.toLowerCase() === clean);
+  if (found) return found;
+
+  // Fallback to dictionary if not found in list
+  const dict = MCC_DICTIONARY[clean];
+  if (dict) {
+    return {
+      code: clean,
+      category: dict.category || "Khác",
+      name: dict.name || `Mã MCC ${clean}`,
+      description: dict.description || `Chi tiêu thuộc danh mục mã ${clean}`,
+      popularBrands: dict.popularBrands || [],
+      isOnlineEligible: dict.isOnlineEligible ?? true,
+    };
+  }
+
+  return undefined;
 }

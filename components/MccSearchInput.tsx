@@ -68,6 +68,30 @@ export default function MccSearchInput({
     }
   }, [query]);
 
+  // Listen to mcc_updated and cards_updated events
+  useEffect(() => {
+    const handleUpdate = () => {
+      if (query.trim()) {
+        setResults(searchMccCodes(query));
+      } else {
+        setResults(searchMccCodes(""));
+      }
+    };
+    window.addEventListener("mcc_updated", handleUpdate);
+    window.addEventListener("cards_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("mcc_updated", handleUpdate);
+      window.removeEventListener("cards_updated", handleUpdate);
+    };
+  }, [query]);
+
+  // Synchronize query display when selectedMcc changes from external actions
+  useEffect(() => {
+    if (selectedMcc && !query) {
+      setQuery(`${selectedMcc.code} - ${selectedMcc.name}`);
+    }
+  }, [selectedMcc]);
+
   // Click outside to close dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -110,7 +134,15 @@ export default function MccSearchInput({
               setIsOpen(true);
             }}
             onFocus={() => setIsOpen(true)}
-            placeholder="Nhập mã MCC (6300, 8211, 7311, 5812...) hoặc tên ngành (Bảo hiểm, Học phí, Chạy Ads, Grab...)"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (results.length > 0) {
+                  handleSelect(results[0]);
+                }
+              }
+            }}
+            placeholder="Nhập mã MCC (5732, 6300, 8211, 7311, 5812...) hoặc tên ngành (Điện máy, Bảo hiểm, Học phí...)"
             className="w-full pl-14 pr-12 py-4 rounded-2xl bg-slate-900/90 border-2 border-amber-500/40 focus:border-amber-400 text-white placeholder-slate-400 text-base shadow-xl backdrop-blur-xl focus:outline-none focus:ring-4 focus:ring-amber-500/20 transition-all font-medium"
           />
           {query && (

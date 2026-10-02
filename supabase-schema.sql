@@ -1,6 +1,6 @@
 -- ====================================================================
 -- MCC Cashback & Credit Card Spending Tracker - Database Schema
--- Tích hợp đầy đủ 748 mã MCC từ vib-card.json
+-- Tích hợp đầy đủ 756 mã MCC từ vib-card.json
 -- Cập nhật chính sách: Family Link & Cash Back (theo kỳ trước), Super Card (max 500k/danh mục), 2in1 (5% online ngoại tệ, 50k lưu thẻ)
 -- ====================================================================
 
@@ -75,7 +75,7 @@ ON CONFLICT (id) DO UPDATE SET
     max_cashback_per_category = EXCLUDED.max_cashback_per_category;
 
 -- ====================================================================
--- SEED DATA: CHÈN TOÀN BỘ 748 MÃ MCC TỪ VIB-CARD.JSON
+-- SEED DATA: CHÈN TOÀN BỘ 756 MÃ MCC TỪ VIB-CARD.JSON
 -- ====================================================================
 
 INSERT INTO mcc_codes (code, category_name, name, description) VALUES
@@ -98,7 +98,7 @@ INSERT INTO mcc_codes (code, category_name, name, description) VALUES
 ('5945', 'Mua sắm', 'Mua sắm (MCC 5945)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
 ('5944', 'Mua sắm', 'Mua sắm (MCC 5944)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
 ('5943', 'Mua sắm', 'Mua sắm (MCC 5943)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
-('5942', 'Mua sắm', 'Mua sắm (MCC 5942)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
+('5942', 'Nhà sách', 'Nhà sách & Hiệu sách (Bookstores)', 'Nhà sách Fahasa, Phương Nam, Tiền Phong, Nhã Nam, Kim Đồng'),
 ('5941', 'Mua sắm', 'Mua sắm (MCC 5941)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
 ('5940', 'Mua sắm', 'Mua sắm (MCC 5940)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
 ('5937', 'Mua sắm', 'Mua sắm (MCC 5937)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
@@ -124,10 +124,10 @@ INSERT INTO mcc_codes (code, category_name, name, description) VALUES
 ('5300', 'Mua sắm', 'Mua sắm (MCC 5300)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
 ('5298', 'Mua sắm', 'Mua sắm (MCC 5298)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
 ('5296', 'Mua sắm', 'Mua sắm (MCC 5296)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
-('5262', 'Mua sắm', 'Mua sắm (MCC 5262)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
+('5262', 'Thương mại điện tử', 'Sàn thương mại điện tử & Chợ trực tuyến', 'Shopee, Lazada, Tiki, TikTok Shop, Sendo, Amazon'),
 ('5200', 'Mua sắm', 'Mua sắm (MCC 5200)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
 ('5193', 'Mua sắm', 'Mua sắm (MCC 5193)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
-('5192', 'Mua sắm', 'Mua sắm (MCC 5192)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
+('5192', 'Nhà sách', 'Nhà xuất bản, Sách báo & Tạp chí', 'NXB Trẻ, NXB Kim Đồng, Báo Tuổi Trẻ, Báo Thanh Niên'),
 ('5139', 'Mua sắm', 'Mua sắm (MCC 5139)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
 ('5137', 'Mua sắm', 'Mua sắm (MCC 5137)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
 ('5131', 'Mua sắm', 'Mua sắm (MCC 5131)', 'Giao dịch danh mục Mua sắm theo phân loại VIB'),
@@ -796,21 +796,21 @@ INSERT INTO mcc_codes (code, category_name, name, description) VALUES
 ('7993', 'Giải trí', 'Giải trí (MCC 7993)', 'Giao dịch danh mục Giải trí theo phân loại VIB'),
 ('7994', 'Giải trí', 'Giải trí (MCC 7994)', 'Giao dịch danh mục Giải trí theo phân loại VIB'),
 ('7996', 'Giải trí', 'Giải trí (MCC 7996)', 'Giao dịch danh mục Giải trí theo phân loại VIB'),
-('7997', 'Giải trí', 'Giải trí (MCC 7997)', 'Giao dịch danh mục Giải trí theo phân loại VIB'),
+('7997', 'Giải trí', 'Câu lạc bộ thể thao & Phòng Gym', 'California Fitness, CityGym, The New Gym, Elite Fitness'),
 ('7998', 'Giải trí', 'Giải trí (MCC 7998)', 'Giao dịch danh mục Giải trí theo phân loại VIB'),
 ('7999', 'Giải trí', 'Giải trí (MCC 7999)', 'Giao dịch danh mục Giải trí theo phân loại VIB'),
 ('8211', 'Giáo dục', 'Trường mầm non, tiểu học, trung học', 'Vinschool, Wellspring, BVIS, VAS'),
 ('8220', 'Giáo dục', 'Trường Đại học, Cao đẳng', 'RMIT University, VinUniversity, ĐH FPT, BUV'),
-('8241', 'Giáo dục', 'Giáo dục (MCC 8241)', 'Giao dịch danh mục Giáo dục theo phân loại VIB'),
-('8244', 'Giáo dục', 'Giáo dục (MCC 8244)', 'Giao dịch danh mục Giáo dục theo phân loại VIB'),
-('8249', 'Giáo dục', 'Giáo dục (MCC 8249)', 'Giao dịch danh mục Giáo dục theo phân loại VIB'),
+('8241', 'Giáo dục', 'Trường đào tạo từ xa & Trực tuyến', 'Coursera Plus, Udemy, edX, Skillshare, FUNiX'),
+('8244', 'Giáo dục', 'Trường đào tạo kinh doanh & Thư ký', 'PACE Institute of Management, FBS Business School, Viện Quản Trị PTI'),
+('8249', 'Giáo dục', 'Trường dạy nghề & Kỹ thuật chuyên môn', 'Trường Cao đẳng Nghề, Saigontourist Hospitality College'),
 ('8299', 'Giáo dục', 'Trung tâm ngoại ngữ & Kỹ năng', 'ILA, VUS, Apollo, Topica, Coursera'),
 ('5047', 'Y tế', 'Y tế (MCC 5047)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
 ('5122', 'Y tế', 'Y tế (MCC 5122)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
 ('5975', 'Y tế', 'Y tế (MCC 5975)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
 ('5976', 'Y tế', 'Y tế (MCC 5976)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
-('8011', 'Y tế', 'Y tế (MCC 8011)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
-('8021', 'Y tế', 'Y tế (MCC 8021)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
+('8011', 'Y tế', 'Phòng khám tư nhân & Bác sĩ gia đình', 'Victoria Healthcare, CarePlus Clinic, Diag, Medlatec'),
+('8021', 'Y tế', 'Nha khoa & Răng hàm mặt', 'Nha khoa Kim, Nha khoa Paris, Peace Dentistry'),
 ('8031', 'Y tế', 'Y tế (MCC 8031)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
 ('8041', 'Y tế', 'Y tế (MCC 8041)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
 ('8042', 'Y tế', 'Y tế (MCC 8042)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
@@ -818,15 +818,23 @@ INSERT INTO mcc_codes (code, category_name, name, description) VALUES
 ('8050', 'Y tế', 'Y tế (MCC 8050)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
 ('8062', 'Y tế', 'Bệnh viện đa khoa & Chuyên khoa', 'Vinmec, BV FV, BV Hoàn Mỹ, BV Tâm Anh, BV Chợ Rẫy'),
 ('8071', 'Y tế', 'Y tế (MCC 8071)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
-('8099', 'Y tế', 'Y tế (MCC 8099)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
+('8099', 'Y tế', 'Dịch vụ y tế & Chăm sóc sức khỏe', 'Medlatec, Diag Laboratories, Phòng khám Đa khoa'),
 ('8351', 'Y tế', 'Y tế (MCC 8351)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
 ('7230', 'Y tế', 'Y tế (MCC 7230)', 'Giao dịch danh mục Y tế theo phân loại VIB'),
 ('6300', 'Bảo hiểm', 'Phí Bảo hiểm nhân thọ & Phi nhân thọ', 'Manulife, Prudential, Dai-ichi Life, Bảo Việt, AIA'),
 ('5966', 'Dịch vụ Marketing/Quảng cáo', 'Dịch vụ Marketing/Quảng cáo (MCC 5966)', 'Giao dịch danh mục Dịch vụ Marketing/Quảng cáo theo phân loại VIB'),
 ('5967', 'Dịch vụ Marketing/Quảng cáo', 'Dịch vụ Marketing/Quảng cáo (MCC 5967)', 'Giao dịch danh mục Dịch vụ Marketing/Quảng cáo theo phân loại VIB'),
-('5968', 'Dịch vụ Marketing/Quảng cáo', 'Dịch vụ Marketing/Quảng cáo (MCC 5968)', 'Giao dịch danh mục Dịch vụ Marketing/Quảng cáo theo phân loại VIB'),
+('5968', 'Dịch vụ Marketing/Quảng cáo', 'Dịch vụ phần mềm SaaS & Tên miền', 'Canva Pro, ChatGPT Plus, Adobe Creative Cloud, Cloudflare'),
 ('5969', 'Dịch vụ Marketing/Quảng cáo', 'Dịch vụ Marketing/Quảng cáo (MCC 5969)', 'Giao dịch danh mục Dịch vụ Marketing/Quảng cáo theo phân loại VIB'),
-('7311', 'Dịch vụ Marketing/Quảng cáo', 'Dịch vụ Quảng cáo trực tuyến', 'Facebook Ads (Meta), Google Ads, TikTok Ads')
+('7311', 'Dịch vụ Marketing/Quảng cáo', 'Dịch vụ Quảng cáo trực tuyến', 'Facebook Ads (Meta), Google Ads, TikTok Ads'),
+('5399', 'Thương mại điện tử', 'Sàn thương mại điện tử', 'Shopee, Lazada, Tiki, TikTok Shop, Sendo'),
+('5732', 'Điện máy', 'Cửa hàng thiết bị điện tử & Công nghệ (Electronics)', 'Điện thoại, laptop, thiết bị công nghệ (ĐMX, FPT Shop, TGDD, CellphoneS, Nguyễn Kim)'),
+('5722', 'Điện máy', 'Cửa hàng điện máy & Thiết bị gia dụng', 'Điện Máy Xanh, Siêu thị Điện Máy Chợ Lớn, MediaMart, Nguyễn Kim, Pico'),
+('9399', 'Y tế', 'Dịch vụ công & Bệnh viện công lập', 'Cổng Dịch vụ công Quốc gia, BV Bạch Mai, BV Chợ Rẫy, BV K'),
+('5960', 'Bảo hiểm', 'Bán lẻ bảo hiểm trực tiếp & Qua mạng', 'Bảo hiểm Bảo Việt Online, VBI App, OPES, Saladin'),
+('6381', 'Bảo hiểm', 'Phí bảo hiểm định kỳ & Tái tục', 'Thanh toán phí bảo hiểm định kỳ, phí duy trì hợp đồng'),
+('6399', 'Bảo hiểm', 'Dịch vụ đại lý & Phí bảo hiểm tổng hợp', 'Các sản phẩm và dịch vụ bảo hiểm liên kết đối tác'),
+('5541', 'Giao thông & Di chuyển', 'Cây xăng & Trạm nhiên liệu', 'Petrolimex, PV OIL, SGS Petrol')
 ON CONFLICT (code) DO NOTHING;
 
 -- ====================================================================

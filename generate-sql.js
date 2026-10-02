@@ -15,7 +15,8 @@ const KNOWN_DESC = {
   '5661': { name: 'Cửa hàng giày dép', desc: 'Nike Store, Adidas Store, Bitis Hunter, Juno, Vascara' },
   '5977': { name: 'Cửa hàng mỹ phẩm & Nước hoa', desc: 'Hasaki, Guardian, Watsons, Innisfree, Sephora' },
   '5094': { name: 'Cửa hàng trang sức & Đồng hồ', desc: 'PNJ, DOJI, SJC, Đồng Hồ Hải Triều' },
-  '5732': { name: 'Cửa hàng thiết bị điện tử', desc: 'Thế Giới Di Động, FPT Shop, CellphoneS' },
+  '5732': { name: 'Cửa hàng thiết bị điện tử & Công nghệ (Electronics)', desc: 'Điện thoại, laptop, thiết bị công nghệ (ĐMX, FPT Shop, TGDD, CellphoneS, Nguyễn Kim)' },
+  '5722': { name: 'Cửa hàng điện máy & Thiết bị gia dụng', desc: 'Điện Máy Xanh, Siêu thị Điện Máy Chợ Lớn, MediaMart, Nguyễn Kim, Pico' },
   '5399': { name: 'Sàn thương mại điện tử', desc: 'Shopee, Lazada, Tiki, TikTok Shop, Sendo' },
   '4511': { name: 'Hãng hàng không & Vé máy bay', desc: 'Vietnam Airlines, Vietjet Air, Bamboo Airways' },
   '4722': { name: 'Đại lý du lịch & Đặt phòng OTA', desc: 'Traveloka, Agoda, Booking.com, Trip.com, Klook' },
@@ -34,6 +35,7 @@ const KNOWN_DESC = {
 
 const mccMap = new Map();
 
+// 1. Thêm toàn bộ mã MCC từ vib-card.json
 for (const card of vib) {
   for (const [category, value] of Object.entries(card)) {
     if (category === 'tên_thẻ') continue;
@@ -44,6 +46,48 @@ for (const card of vib) {
         }
       }
     }
+  }
+}
+
+// 2. Thêm toàn bộ mã MCC từ các dòng thẻ khác trong /cards (đặc biệt Shinhan Supreme)
+const ADDITIONAL_CARD_MCCS = [
+  // Shinhan Supreme - Thương mại điện tử (12%)
+  { code: '5262', category: 'Thương mại điện tử', name: 'Sàn thương mại điện tử & Chợ trực tuyến', desc: 'Shopee, Lazada, Tiki, TikTok Shop, Sendo, Amazon' },
+  { code: '5399', category: 'Thương mại điện tử', name: 'Sàn thương mại điện tử tổng hợp', desc: 'Mua sắm trực tuyến đa ngành hàng qua website / app' },
+  // Shinhan Supreme - Điện máy (12%)
+  { code: '5732', category: 'Điện máy', name: 'Cửa hàng thiết bị điện tử & Công nghệ (Electronics)', desc: 'Thế Giới Di Động, FPT Shop, CellphoneS, ĐMX, Nguyễn Kim, TopZone, GearVN' },
+  { code: '5722', category: 'Điện máy', name: 'Cửa hàng điện máy & Thiết bị gia dụng', desc: 'Điện Máy Xanh, Siêu thị Điện Máy Chợ Lớn, MediaMart, Nguyễn Kim, Pico' },
+  // Shinhan Supreme - Giáo dục (12%)
+  { code: '8211', category: 'Giáo dục', name: 'Trường mầm non, tiểu học, trung học (K-12)', desc: 'Vinschool, Wellspring, BVIS, VAS, PennSchool' },
+  { code: '8220', category: 'Giáo dục', name: 'Trường Đại học, Cao đẳng', desc: 'RMIT University, VinUniversity, ĐH FPT, BUV, ĐH Bách Khoa, ĐH Kinh Tế' },
+  { code: '8241', category: 'Giáo dục', name: 'Trường đào tạo từ xa & Trực tuyến', desc: 'Coursera Plus, Udemy, edX, Skillshare, FUNiX' },
+  { code: '8244', category: 'Giáo dục', name: 'Trường đào tạo kinh doanh & Thư ký', desc: 'PACE Institute of Management, FBS Business School, Viện Quản Trị PTI' },
+  { code: '8249', category: 'Giáo dục', name: 'Trường dạy nghề & Kỹ thuật chuyên môn', desc: 'Trường Cao đẳng Nghề, Saigontourist Hospitality College' },
+  { code: '8299', category: 'Giáo dục', name: 'Trung tâm ngoại ngữ & Kỹ năng', desc: 'ILA, VUS, Apollo English, Topica, Coursera' },
+  // Shinhan Supreme - Nhà sách (12%)
+  { code: '5942', category: 'Nhà sách', name: 'Nhà sách & Hiệu sách (Bookstores)', desc: 'Nhà sách Fahasa, Phương Nam, Tiền Phong, Nhã Nam, Kim Đồng' },
+  { code: '5192', category: 'Nhà sách', name: 'Nhà xuất bản, Sách báo & Tạp chí', desc: 'NXB Trẻ, NXB Kim Đồng, Báo Tuổi Trẻ, Báo Thanh Niên' },
+  // Shinhan Supreme - Bệnh viện & Y tế (6%)
+  { code: '8011', category: 'Y tế', name: 'Phòng khám tư nhân & Bác sĩ gia đình', desc: 'Victoria Healthcare, CarePlus Clinic, Diag, Medlatec' },
+  { code: '8062', category: 'Y tế', name: 'Bệnh viện đa khoa & Chuyên khoa', desc: 'Vinmec, BV FV, BV Hoàn Mỹ, BV Tâm Anh, BV Chợ Rẫy' },
+  { code: '8099', category: 'Y tế', name: 'Dịch vụ y tế & Chăm sóc sức khỏe', desc: 'Medlatec, Diag Laboratories, Phòng khám Đa khoa' },
+  { code: '9399', category: 'Y tế', name: 'Dịch vụ công & Bệnh viện công lập', desc: 'Cổng Dịch vụ công Quốc gia, BV Bạch Mai, BV Chợ Rẫy, BV K' },
+  // Shinhan Supreme - Bảo hiểm (6%)
+  { code: '5960', category: 'Bảo hiểm', name: 'Bán lẻ bảo hiểm trực tiếp & Qua mạng', desc: 'Bảo hiểm Bảo Việt Online, VBI App, OPES, Saladin' },
+  { code: '6300', category: 'Bảo hiểm', name: 'Phí Bảo hiểm nhân thọ & Phi nhân thọ', desc: 'Manulife, Prudential, Dai-ichi Life, Bảo Việt, AIA, FWD, Chubb' },
+  { code: '6381', category: 'Bảo hiểm', name: 'Phí bảo hiểm định kỳ & Tái tục', desc: 'Thanh toán phí bảo hiểm định kỳ, phí duy trì hợp đồng' },
+  { code: '6399', category: 'Bảo hiểm', name: 'Dịch vụ đại lý & Phí bảo hiểm tổng hợp', desc: 'Các sản phẩm và dịch vụ bảo hiểm liên kết đối tác' },
+  // Thêm các mã dịch vụ phổ biến khác
+  { code: '5541', category: 'Giao thông & Di chuyển', name: 'Cây xăng & Trạm nhiên liệu', desc: 'Petrolimex, PV OIL, SGS Petrol' },
+  { code: '7997', category: 'Giải trí', name: 'Câu lạc bộ thể thao & Phòng Gym', desc: 'California Fitness, CityGym, The New Gym, Elite Fitness' },
+  { code: '5968', category: 'Dịch vụ Marketing/Quảng cáo', name: 'Dịch vụ phần mềm SaaS & Tên miền', desc: 'Canva Pro, ChatGPT Plus, Adobe Creative Cloud, Cloudflare' },
+  { code: '8021', category: 'Y tế', name: 'Nha khoa & Răng hàm mặt', desc: 'Nha khoa Kim, Nha khoa Paris, Peace Dentistry' },
+];
+
+for (const item of ADDITIONAL_CARD_MCCS) {
+  mccMap.set(item.code, item.category);
+  if (!KNOWN_DESC[item.code]) {
+    KNOWN_DESC[item.code] = { name: item.name, desc: item.desc };
   }
 }
 

@@ -1,5 +1,6 @@
 import { Transaction, CreditCard } from "@/types";
 import { DEFAULT_CARDS } from "./data/cards-database";
+import { getAllMccItems } from "./data/mcc-database";
 import { getSupabaseClient } from "./supabase";
 
 const STORAGE_KEYS = {
@@ -197,9 +198,31 @@ export function saveCards(cards: CreditCard[]): void {
   try {
     localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(cards));
     window.dispatchEvent(new Event("cards_updated"));
+    window.dispatchEvent(new Event("mcc_updated"));
   } catch (e) {
     console.error("Lỗi lưu cards vào localStorage:", e);
   }
+}
+
+const DELETED_CARDS_KEY = "mcc_deleted_card_ids";
+
+export function getDeletedCardIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem(DELETED_CARDS_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+export function recordDeletedCardId(id: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const ids = getDeletedCardIds();
+    ids.add(id);
+    localStorage.setItem(DELETED_CARDS_KEY, JSON.stringify(Array.from(ids)));
+  } catch {}
 }
 
 export function addCard(newCard: CreditCard): CreditCard[] {
@@ -209,6 +232,7 @@ export function addCard(newCard: CreditCard): CreditCard[] {
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("cards_updated"));
   }
+  syncCardToSupabase(newCard);
   return updated;
 }
 
@@ -218,6 +242,10 @@ export function updateCard(id: string, updates: Partial<CreditCard>): CreditCard
   saveCards(updated);
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("cards_updated"));
+  }
+  const modified = updated.find((c) => c.id === id);
+  if (modified) {
+    syncCardToSupabase(modified);
   }
   return updated;
 }
@@ -229,6 +257,7 @@ export function deleteCard(id: string): CreditCard[] {
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("cards_updated"));
   }
+  deleteCardFromSupabase(id);
   return updated;
 }
 
@@ -245,7 +274,9 @@ export function duplicateCard(
   const source = cards.find((c) => c.id === sourceCardId) || DEFAULT_CARDS.find((c) => c.id === sourceCardId);
   if (!source) return null;
 
-  const newId = `card-${source.id.replace(/^card-/, "")}-${Date.now().toString(36)}`;
+  // Make sure newId stays <= 50 chars for database VARCHAR(50)
+  const basePrefix = source.id.replace(/^card-/, "").slice(0, 20);
+  const newId = `card-${basePrefix}-${Date.now().toString(36)}`;
   const clonedRules = source.rules.map((r) => ({ ...r, cardId: newId }));
   const newCard: CreditCard = {
     ...source,
@@ -267,6 +298,68 @@ export function resetToDefaults(): void {
   localStorage.setItem("mcc_data_version", CURRENT_DATA_VERSION);
   localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(INITIAL_TRANSACTIONS));
   localStorage.setItem(STORAGE_KEYS.CUSTOM_CARDS, JSON.stringify(DEFAULT_CARDS));
+  localStorage.removeItem(DELETED_CARDS_KEY);
+}
+
+// Background Supabase Sync Helpers for individual card
+export async function syncCardToSupabase(card: CreditCard): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+
+  try {
+    const cardData = {
+      id: card.id,
+      name: card.name,
+      bank: card.bank,
+      cardholder_name: card.cardholderName || null,
+      statement_day: card.statementDay,
+      due_day: card.dueDay,
+      max_cashback_per_month: card.maxCashbackPerMonth ?? null,
+      max_cashback_per_category: card.maxCashbackPerCategory ?? null,
+      default_cashback_rate: card.defaultCashbackRate ?? 0.1,
+    };
+
+    const { error: cardError } = await client.from("cards").upsert(cardData, { onConflict: "id" });
+    if (cardError) {
+      console.warn("Lỗi đồng bộ thẻ lên Supabase:", cardError);
+      return;
+    }
+
+    // Đồng bộ cashback_rules cho thẻ
+    if (card.rules && card.rules.length > 0) {
+      try {
+        await client.from("cashback_rules").delete().eq("card_id", card.id);
+        const rulesToInsert = card.rules.map((r) => ({
+          card_id: card.id,
+          category_name: r.category ? r.category.slice(0, 100) : null,
+          cashback_rate: Number(r.cashbackRate) || 0,
+          min_spend_required: r.minSpendRequired ?? 0,
+          max_cashback_per_category: r.maxCashbackPerCategory ?? null,
+          is_online_only: Boolean(r.isOnlineOnly),
+          is_foreign_only: Boolean(r.isForeignOnly),
+          is_saved_card_only: Boolean(r.isSavedCardOnly),
+          note: r.note ? r.note.slice(0, 255) : null,
+        }));
+        await client.from("cashback_rules").insert(rulesToInsert);
+      } catch (ruleErr) {
+        console.warn("Lỗi sync cashback_rules:", ruleErr);
+      }
+    }
+  } catch (e) {
+    console.warn("Không thể đồng bộ thẻ lên Supabase:", e);
+  }
+}
+
+export async function deleteCardFromSupabase(cardId: string): Promise<void> {
+  const client = getSupabaseClient();
+  if (!client) return;
+
+  try {
+    recordDeletedCardId(cardId);
+    await client.from("cards").delete().eq("id", cardId);
+  } catch (e) {
+    console.warn("Không thể xóa thẻ trên Supabase:", e);
+  }
 }
 
 // Background Supabase Sync Helpers for cards & cashback_rules
@@ -283,22 +376,39 @@ export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
     const cardsData = cardsRes.data;
     const rulesData = rulesRes.data;
 
-    if ((!cardsData || cardsData.length === 0) && (!rulesData || rulesData.length === 0)) {
+    if (!cardsData || cardsData.length === 0) {
       return null;
     }
 
     const currentCards = getStoredCards();
-    const updated = currentCards.map((c) => {
-      const dbCard = cardsData?.find((d: any) => d.id === c.id);
+    const deletedCardIds = getDeletedCardIds();
+    const remoteCardIds = new Set(cardsData.map((d: any) => d.id));
 
-      // Update rules from Supabase cashback_rules if available
-      let updatedRules = [...c.rules];
-      if (rulesData && rulesData.length > 0) {
-        const cardRules = rulesData.filter((r: any) => r.card_id === c.id);
-        if (cardRules.length > 0) {
+    // 1. Đồng bộ thẻ từ local lên Supabase nếu trên Supabase chưa có (ví dụ: thẻ nhân bản trước đó trên thiết bị này)
+    const localOnly = currentCards.filter((c) => !remoteCardIds.has(c.id) && !deletedCardIds.has(c.id));
+    for (const missing of localOnly) {
+      await syncCardToSupabase(missing);
+    }
+
+    // 2. Map các thẻ hiện tại
+    const cardMap = new Map<string, CreditCard>();
+    currentCards.forEach((c) => cardMap.set(c.id, c));
+
+    // 3. Xử lý các thẻ lấy từ Supabase về
+    for (const dbCard of cardsData) {
+      if (deletedCardIds.has(dbCard.id)) {
+        continue;
+      }
+
+      const cardRulesData = (rulesData || []).filter((r: any) => r.card_id === dbCard.id);
+
+      if (cardMap.has(dbCard.id)) {
+        // Cập nhật thẻ hiện có
+        const local = cardMap.get(dbCard.id)!;
+        let updatedRules = [...local.rules];
+        if (cardRulesData.length > 0) {
           updatedRules = updatedRules.map((rule) => {
-            // Match rule by category_name
-            const matchedDbRule = cardRules.find((r: any) => {
+            const matchedDbRule = cardRulesData.find((r: any) => {
               if (!r.category_name || !rule.category) return false;
               const rCat = r.category_name.trim().toLowerCase();
               const ruleCat = rule.category.trim().toLowerCase();
@@ -330,35 +440,86 @@ export async function syncCardsFromSupabase(): Promise<CreditCard[] | null> {
             return rule;
           });
         }
-      }
 
-      if (dbCard) {
-        return {
-          ...c,
-          statementDay: dbCard.statement_day ?? c.statementDay,
-          dueDay: dbCard.due_day ?? c.dueDay,
-          maxCashbackPerMonth: dbCard.max_cashback_per_month ?? c.maxCashbackPerMonth,
-          maxCashbackPerCategory: dbCard.max_cashback_per_category ?? c.maxCashbackPerCategory,
-          name: dbCard.name ?? c.name,
-          bank: dbCard.bank ?? c.bank,
-          cardholderName: dbCard.cardholder_name ?? c.cardholderName,
-          defaultCashbackRate: dbCard.default_cashback_rate ?? c.defaultCashbackRate,
-          imageUrl: dbCard.image ?? dbCard.image_url ?? c.imageUrl,
+        cardMap.set(dbCard.id, {
+          ...local,
+          statementDay: dbCard.statement_day ?? local.statementDay,
+          dueDay: dbCard.due_day ?? local.dueDay,
+          maxCashbackPerMonth: dbCard.max_cashback_per_month ?? local.maxCashbackPerMonth,
+          maxCashbackPerCategory: dbCard.max_cashback_per_category ?? local.maxCashbackPerCategory,
+          name: dbCard.name ?? local.name,
+          bank: dbCard.bank ?? local.bank,
+          cardholderName: dbCard.cardholder_name ?? local.cardholderName,
+          defaultCashbackRate: dbCard.default_cashback_rate ?? local.defaultCashbackRate,
+          imageUrl: dbCard.image ?? dbCard.image_url ?? local.imageUrl,
           rules: updatedRules,
+        });
+      } else {
+        // Thẻ có trên Supabase nhưng thiết bị này CHƯA CÓ (ví dụ nhân bản từ thiết bị khác) -> Tái tạo & thêm vào máy này!
+        const template =
+          DEFAULT_CARDS.find(
+            (dc) =>
+              dbCard.id.startsWith(`card-${dc.id.replace(/^card-/, "")}`) ||
+              dbCard.id.includes(dc.id) ||
+              dc.name.toLowerCase() === dbCard.name?.toLowerCase()
+          ) || DEFAULT_CARDS[0];
+
+        let cardRules = template.rules.map((r) => ({ ...r, cardId: dbCard.id }));
+        if (cardRulesData.length > 0) {
+          cardRules = template.rules.map((r) => {
+            const matchedDbRule = cardRulesData.find((dbr: any) => {
+              if (!dbr.category_name || !r.category) return false;
+              const rCat = dbr.category_name.trim().toLowerCase();
+              const ruleCat = r.category.trim().toLowerCase();
+              return rCat === ruleCat || rCat.includes(ruleCat) || ruleCat.includes(rCat);
+            });
+            if (matchedDbRule) {
+              const newRate = Number(matchedDbRule.cashback_rate);
+              return {
+                ...r,
+                cardId: dbCard.id,
+                cashbackRate: !isNaN(newRate) ? newRate : r.cashbackRate,
+                minSpendRequired:
+                  matchedDbRule.min_spend_required != null
+                    ? Number(matchedDbRule.min_spend_required)
+                    : r.minSpendRequired,
+                maxCashbackPerCategory:
+                  matchedDbRule.max_cashback_per_category != null
+                    ? Number(matchedDbRule.max_cashback_per_category)
+                    : r.maxCashbackPerCategory,
+                note: matchedDbRule.note || r.note,
+              };
+            }
+            return { ...r, cardId: dbCard.id };
+          });
+        }
+
+        const newRemoteCard: CreditCard = {
+          ...template,
+          id: dbCard.id,
+          name: dbCard.name || template.name,
+          bank: dbCard.bank || template.bank,
+          cardholderName: dbCard.cardholder_name || template.cardholderName,
+          statementDay: dbCard.statement_day ?? template.statementDay,
+          dueDay: dbCard.due_day ?? template.dueDay,
+          maxCashbackPerMonth: dbCard.max_cashback_per_month ?? template.maxCashbackPerMonth,
+          maxCashbackPerCategory: dbCard.max_cashback_per_category ?? template.maxCashbackPerCategory,
+          defaultCashbackRate: dbCard.default_cashback_rate ?? template.defaultCashbackRate,
+          imageUrl: dbCard.image ?? dbCard.image_url ?? template.imageUrl,
+          rules: cardRules,
+          isCustom: true,
         };
+
+        cardMap.set(dbCard.id, newRemoteCard);
       }
+    }
 
-      return {
-        ...c,
-        rules: updatedRules,
-      };
-    });
-
-    saveCards(updated);
+    const mergedList = Array.from(cardMap.values());
+    saveCards(mergedList);
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("cards_updated"));
     }
-    return updated;
+    return mergedList;
   } catch (e) {
     console.warn("Lỗi sync cards từ Supabase:", e);
     return null;
@@ -384,7 +545,19 @@ export async function syncMccCodesFromSupabase(): Promise<any[] | null> {
     }));
 
     if (typeof window !== "undefined") {
-      localStorage.setItem("mcc_custom_codes", JSON.stringify(mccList));
+      // Hợp nhất với danh sách MCC đầy đủ hiện có (từ dictionary và các thẻ /cards) để không bao giờ bị mất mã như 5732
+      const currentItems = getAllMccItems();
+      const map = new Map<string, any>();
+      for (const item of currentItems) {
+        map.set(item.code, item);
+      }
+      for (const d of mccList) {
+        if (!map.has(d.code) || map.get(d.code).category === "Khác") {
+          map.set(d.code, d);
+        }
+      }
+      const mergedList = Array.from(map.values());
+      localStorage.setItem("mcc_custom_codes", JSON.stringify(mergedList));
       window.dispatchEvent(new Event("mcc_updated"));
     }
     return mccList;
@@ -519,9 +692,14 @@ export function importDataFromJson(jsonStr: string): boolean {
     const data = JSON.parse(jsonStr);
     if (data.transactions && Array.isArray(data.transactions)) {
       saveTransactions(data.transactions);
+      data.transactions.forEach((tx: Transaction) => syncTransactionToSupabase(tx));
     }
     if (data.cards && Array.isArray(data.cards)) {
       saveCards(data.cards);
+      data.cards.forEach((card: CreditCard) => syncCardToSupabase(card));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("cards_updated"));
+      }
     }
     return true;
   } catch (e) {
@@ -529,3 +707,4 @@ export function importDataFromJson(jsonStr: string): boolean {
     return false;
   }
 }
+

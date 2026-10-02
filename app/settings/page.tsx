@@ -9,6 +9,7 @@ import {
   exportDataAsJson,
   importDataFromJson,
   resetToDefaults,
+  syncAllDataFromSupabase,
 } from "@/lib/storage";
 import { useTheme, ThemeMode } from "@/components/ThemeProvider";
 import { THEME_OPTIONS } from "@/components/ThemeToggle";
@@ -29,6 +30,7 @@ import {
   KeyRound,
   ShieldAlert,
   Palette,
+  RefreshCw,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -36,6 +38,7 @@ export default function SettingsPage() {
   const [supabaseUrl, setSupabaseUrl] = useState("");
   const [supabaseKey, setSupabaseKey] = useState("");
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
   const [importStatus, setImportStatus] = useState<string | null>(null);
 
@@ -45,13 +48,36 @@ export default function SettingsPage() {
     setSupabaseKey(creds.key);
   }, []);
 
-  const handleSaveSupabase = (e: React.FormEvent) => {
+  const handleSaveSupabase = async (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem("mcc_supabase_url", supabaseUrl.trim());
     localStorage.setItem("mcc_supabase_key", supabaseKey.trim());
     resetSupabaseClient();
-    setSaveStatus("Đã lưu thông tin cấu hình Supabase thành công!");
-    setTimeout(() => setSaveStatus(null), 4000);
+    setIsSyncing(true);
+    setSaveStatus("Đang kiểm tra kết nối và đồng bộ dữ liệu hai chiều...");
+    try {
+      await syncAllDataFromSupabase();
+      setSaveStatus("Đã lưu thông tin cấu hình và đồng bộ Supabase Cloud thành công!");
+    } catch {
+      setSaveStatus("Đã lưu thông tin cấu hình Supabase!");
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSaveStatus(null), 5000);
+    }
+  };
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    setSaveStatus("Đang đồng bộ toàn bộ dữ liệu thẻ và giao dịch từ Cloud...");
+    try {
+      await syncAllDataFromSupabase();
+      setSaveStatus("Đồng bộ đám mây thành công! Tất cả thẻ và giao dịch đã được cập nhật.");
+    } catch {
+      setSaveStatus("Lỗi khi kết nối Supabase. Vui lòng kiểm tra lại URL và Key.");
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSaveStatus(null), 5000);
+    }
   };
 
   const handleExport = () => {
@@ -293,16 +319,28 @@ export default function SettingsPage() {
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
             <span className="text-[11px] text-slate-500">
-              Mẹo: Nếu để trống, ứng dụng sẽ lưu trữ dữ liệu offline trực tiếp trên LocalStorage của trình duyệt.
+              Mẹo: Khi lưu hoặc bấm Đồng bộ, toàn bộ Thẻ tín dụng & Giao dịch sẽ được đồng bộ 2 chiều tức thì.
             </span>
-            <button
-              type="submit"
-              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 transition-all"
-            >
-              Lưu cấu hình
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleManualSync}
+                disabled={isSyncing || (!supabaseUrl && !process.env.NEXT_PUBLIC_SUPABASE_URL)}
+                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-semibold text-xs border border-white/10 transition-all flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin text-amber-400" : ""}`} />
+                {isSyncing ? "Đang đồng bộ..." : "Đồng bộ đám mây ngay"}
+              </button>
+              <button
+                type="submit"
+                disabled={isSyncing}
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/25 transition-all cursor-pointer disabled:opacity-50"
+              >
+                Lưu cấu hình
+              </button>
+            </div>
           </div>
         </form>
       </div>
