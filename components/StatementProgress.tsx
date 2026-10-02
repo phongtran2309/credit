@@ -52,18 +52,25 @@ export default function StatementProgress({ summary }: StatementProgressProps) {
             </span>
           </div>
 
-          {/* Days remaining badge */}
+          {/* Days remaining or billed badge */}
           <div className="shrink-0 flex items-center gap-1">
-            <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
-                cycleInfo.isDueApproaching
-                  ? "bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse"
-                  : "bg-blue-500/15 text-sky-300 border-blue-500/30"
-              }`}
-            >
-              <Clock className="w-3 h-3" />
-              Còn {cycleInfo.daysRemaining} ngày
-            </span>
+            {new Date() > cycleInfo.endDate ? (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 bg-slate-800 text-slate-300 border-white/10">
+                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                Đã chốt sao kê
+              </span>
+            ) : (
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                  cycleInfo.isDueApproaching
+                    ? "bg-rose-500/20 text-rose-300 border-rose-500/40 animate-pulse"
+                    : "bg-blue-500/15 text-sky-300 border-blue-500/30"
+                }`}
+              >
+                <Clock className="w-3 h-3" />
+                Còn {cycleInfo.daysRemaining} ngày
+              </span>
+            )}
           </div>
         </div>
 

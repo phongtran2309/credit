@@ -181,3 +181,87 @@ export function formatNumber(num: number): string {
   return new Intl.NumberFormat("vi-VN").format(num);
 }
 
+export interface ExtendedStatementCycleInfo extends StatementCycleInfo {
+  offset: number; // 0 = current, -1 = previous, -2 = 2 cycles ago, etc.
+  cycleMonthLabel: string; // e.g. "Kỳ Tháng 10/2026"
+  shortCycleLabel: string; // e.g. "28/09 - 27/10"
+  isCurrentCycle: boolean;
+  isPastCycle: boolean;
+}
+
+/**
+ * Returns statement cycle info for a card at a specific cycle offset.
+ * offset: 0 for current cycle, -1 for previous cycle, -2 for 2 cycles ago, etc.
+ */
+export function getCardStatementCycleByOffset(
+  statementDay: number,
+  dueDay: number,
+  offset: number = 0,
+  baseDate: Date = new Date()
+): ExtendedStatementCycleInfo {
+  let cycle = calculateStatementCycle(statementDay, dueDay, baseDate);
+  if (offset < 0) {
+    for (let i = 0; i < Math.abs(offset); i++) {
+      const prevDate = new Date(cycle.startDate.getTime() - 86400000);
+      cycle = calculateStatementCycle(statementDay, dueDay, prevDate);
+    }
+  } else if (offset > 0) {
+    for (let i = 0; i < offset; i++) {
+      const nextDate = new Date(cycle.endDate.getTime() + 86400000);
+      cycle = calculateStatementCycle(statementDay, dueDay, nextDate);
+    }
+  }
+
+  const now = new Date();
+  const isCurrentCycle = now >= cycle.startDate && now <= cycle.endDate;
+  const isPastCycle = now > cycle.endDate;
+
+  const cycleMonth = cycle.endDate.getMonth() + 1;
+  const cycleYear = cycle.endDate.getFullYear();
+  const cycleMonthLabel = `Kỳ Tháng ${cycleMonth < 10 ? "0" + cycleMonth : cycleMonth}/${cycleYear}`;
+  const shortCycleLabel = `${cycle.startDate.getDate()}/${cycle.startDate.getMonth() + 1} - ${cycle.endDate.getDate()}/${cycleMonth}`;
+
+  return {
+    ...cycle,
+    offset,
+    cycleMonthLabel,
+    shortCycleLabel,
+    isCurrentCycle,
+    isPastCycle,
+  };
+}
+
+/**
+ * Calculates which statement cycle a specific transaction date falls into for a card
+ */
+export function getTransactionStatementCycle(
+  statementDay: number,
+  dueDay: number,
+  txDateString: string
+): ExtendedStatementCycleInfo {
+  const txDate = new Date(txDateString);
+  txDate.setHours(12, 0, 0, 0);
+  const cycle = calculateStatementCycle(statementDay, dueDay, txDate);
+  const now = new Date();
+  const isCurrentCycle = now >= cycle.startDate && now <= cycle.endDate;
+  const isPastCycle = now > cycle.endDate;
+  const cycleMonth = cycle.endDate.getMonth() + 1;
+  const cycleYear = cycle.endDate.getFullYear();
+  const cycleMonthLabel = `Kỳ Tháng ${cycleMonth < 10 ? "0" + cycleMonth : cycleMonth}/${cycleYear}`;
+  const shortCycleLabel = `${cycle.startDate.getDate()}/${cycle.startDate.getMonth() + 1} - ${cycle.endDate.getDate()}/${cycleMonth}`;
+
+  const currentCycle = calculateStatementCycle(statementDay, dueDay, now);
+  const monthsDiff =
+    (cycle.endDate.getFullYear() - currentCycle.endDate.getFullYear()) * 12 +
+    (cycle.endDate.getMonth() - currentCycle.endDate.getMonth());
+
+  return {
+    ...cycle,
+    offset: monthsDiff,
+    cycleMonthLabel,
+    shortCycleLabel,
+    isCurrentCycle,
+    isPastCycle,
+  };
+}
+
