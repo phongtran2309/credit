@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CardSpendingSummary } from "@/types";
 import { formatCurrencyVND } from "@/lib/statement-helper";
+import { updateTransaction } from "@/lib/storage";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -13,6 +14,7 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
+  Wand2,
 } from "lucide-react";
 
 interface StatementProgressProps {
@@ -28,6 +30,8 @@ export default function StatementProgress({ summary }: StatementProgressProps) {
     totalSpent,
     totalCashback,
     maxCashback,
+    actualCashback = maxCashback > 0 ? Math.min(totalCashback, maxCashback) : totalCashback,
+    overflowCashback = maxCashback > 0 ? Math.max(0, totalCashback - maxCashback) : 0,
     isCapReached,
     optimalSpentTarget,
     isOptimalSpendReached,
@@ -37,8 +41,47 @@ export default function StatementProgress({ summary }: StatementProgressProps) {
   } = summary;
 
   const percentageCapped = Math.min(Math.round(cashbackPercentage), 100);
-  const remainingCashbackCap = Math.max(0, maxCashback - totalCashback);
+  const remainingCashbackCap = Math.max(0, maxCashback - actualCashback);
   const hasCategories = Object.keys(categoryBreakdown).length > 0;
+  const [isRebalancing, setIsRebalancing] = useState(false);
+
+  const handleAutoRebalance = () => {
+    if (!summary.transactions || summary.transactions.length === 0 || maxCashback <= 0) return;
+    setIsRebalancing(true);
+
+    try {
+      // Sắp xếp giao dịch theo ngày tăng dần để các bill trước được hưởng full hoàn
+      const sorted = [...summary.transactions].sort(
+        (a, b) => new Date(a.transactionDate).getTime() - new Date(b.transactionDate).getTime()
+      );
+
+      let cumulativeCashback = 0;
+      let hasChanges = false;
+
+      for (const tx of sorted) {
+        const rate = tx.amount > 0 ? (tx.cashbackAmount / tx.amount) * 100 : tx.cashbackRate || 0;
+        const theoretical = Math.round((tx.amount * rate) / 100);
+        const remainingCap = Math.max(0, maxCashback - cumulativeCashback);
+        const newCashback = Math.min(theoretical, remainingCap);
+
+        if (newCashback !== tx.cashbackAmount) {
+          hasChanges = true;
+          const newRate = tx.amount > 0 ? Number(((newCashback / tx.amount) * 100).toFixed(2)) : rate;
+          updateTransaction(tx.id, {
+            cashbackAmount: newCashback,
+            cashbackRate: newRate,
+          });
+        }
+        cumulativeCashback += newCashback;
+      }
+
+      if (hasChanges && typeof window !== "undefined") {
+        window.dispatchEvent(new Event("transaction_updated"));
+      }
+    } finally {
+      setIsRebalancing(false);
+    }
+  };
 
   return (
     <div className="p-4 sm:p-5 rounded-3xl glass-panel border border-white/10 hover:border-amber-500/30 transition-all flex flex-col justify-between space-y-3.5 relative overflow-hidden">
@@ -100,12 +143,25 @@ export default function StatementProgress({ summary }: StatementProgressProps) {
         </div>
 
         <div className="p-2.5 rounded-2xl bg-slate-950/60 border border-amber-500/20 space-y-0.5">
-          <span className="text-[11px] text-amber-300 font-medium flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-400" /> Tiền hoàn
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-amber-300 font-medium flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-amber-400" /> Tiền hoàn
+            </span>
+            {overflowCashback > 0 && (
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">
+                Đạt trần
+              </span>
+            )}
+          </div>
           <span className="text-sm sm:text-base font-black text-amber-400 block">
-            +{formatCurrencyVND(totalCashback)}
+            +{formatCurrencyVND(actualCashback)}
           </span>
+          {overflowCashback > 0 && (
+            <div className="text-[10px] text-slate-400 flex items-center gap-1 flex-wrap pt-0.5">
+              <span className="line-through text-slate-500">+{formatCurrencyVND(totalCashback)}</span>
+              <span className="text-rose-400 font-medium">(-{formatCurrencyVND(overflowCashback)})</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -153,10 +209,14 @@ export default function StatementProgress({ summary }: StatementProgressProps) {
       </div>
 
       {/* Success / Warning badge */}
-      {isOptimalSpendReached || isCapReached ? (
+      {isCapReached || isOptimalSpendReached ? (
         <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold flex items-center gap-1.5">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span>Đã đạt mốc tối ưu! Nên chuyển sang thẻ tiếp theo.</span>
+          <span>
+            {overflowCashback > 0
+              ? `Đã nhận tối đa trần ${formatCurrencyVND(maxCashback)}! Nên chuyển sang thẻ tiếp theo.`
+              : "Đã đạt mốc tối ưu! Nên chuyển sang thẻ tiếp theo."}
+          </span>
         </div>
       ) : (
         <div className="text-[11px] text-slate-400 flex items-center justify-between pt-0.5">
@@ -165,6 +225,22 @@ export default function StatementProgress({ summary }: StatementProgressProps) {
             {formatCurrencyVND(Math.max(0, optimalSpentTarget - totalSpent))}
           </span>
         </div>
+      )}
+
+      {/* Rebalance button when overflow occurs */}
+      {overflowCashback > 0 && (
+        <button
+          type="button"
+          onClick={handleAutoRebalance}
+          disabled={isRebalancing}
+          className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/15 hover:from-amber-500/25 hover:to-orange-500/25 active:scale-[0.99] text-amber-300 border border-amber-500/30 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+          title={`Tự động điều chỉnh các giao dịch vượt trần để tổng hoàn khớp ${formatCurrencyVND(maxCashback)}`}
+        >
+          <Wand2 className="w-3.5 h-3.5 text-amber-400" />
+          <span>
+            {isRebalancing ? "Đang xử lý cân đối..." : `Cân đối lại chi tiết giao dịch khớp trần ${formatCurrencyVND(maxCashback)}`}
+          </span>
+        </button>
       )}
 
       {/* Category breakdown accordion */}

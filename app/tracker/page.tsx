@@ -157,7 +157,9 @@ export default function TrackerPage() {
       const totalSpent = cycleTransactions.reduce((sum, tx) => sum + tx.amount, 0);
       const totalCashback = cycleTransactions.reduce((sum, tx) => sum + tx.cashbackAmount, 0);
       const maxCashback = card.maxCashbackPerMonth;
-      const isCapReached = totalCashback >= maxCashback;
+      const actualCashback = maxCashback > 0 ? Math.min(totalCashback, maxCashback) : totalCashback;
+      const overflowCashback = maxCashback > 0 ? Math.max(0, totalCashback - maxCashback) : 0;
+      const isCapReached = maxCashback > 0 && totalCashback >= maxCashback;
       const cashbackPercentage = maxCashback > 0 ? (totalCashback / maxCashback) * 100 : 0;
 
       const optimalSpentTarget =
@@ -205,6 +207,8 @@ export default function TrackerPage() {
         cycleInfo,
         totalSpent,
         totalCashback,
+        actualCashback,
+        overflowCashback,
         maxCashback,
         maxCashbackPerCategory: card.maxCashbackPerCategory,
         cashbackPercentage,
@@ -224,8 +228,19 @@ export default function TrackerPage() {
   }, [displayedTransactions]);
 
   const cycleTotalCashback = useMemo(() => {
+    if (selectedCardFilter !== "all") {
+      const summary = cardSummaries.find((s) => s.card.id === selectedCardFilter);
+      return summary ? summary.actualCashback : displayedTransactions.reduce((sum, tx) => sum + tx.cashbackAmount, 0);
+    }
+    // Sum actual cashbacks of cards in active cycle
+    return cardSummaries.reduce((sum, s) => sum + s.actualCashback, 0);
+  }, [cardSummaries, selectedCardFilter, displayedTransactions]);
+
+  const cycleTheoreticalCashback = useMemo(() => {
     return displayedTransactions.reduce((sum, tx) => sum + tx.cashbackAmount, 0);
   }, [displayedTransactions]);
+
+  const cycleOverflowCashback = Math.max(0, cycleTheoreticalCashback - cycleTotalCashback);
 
   const cycleAverageRate = useMemo(() => {
     return cycleTotalSpent > 0 ? ((cycleTotalCashback / cycleTotalSpent) * 100).toFixed(1) : "0";
@@ -420,13 +435,32 @@ export default function TrackerPage() {
               <Sparkles className="w-4 h-4 text-amber-400" />
               {selectedCycleOffset === "all" ? "Tổng tiền hoàn toàn thời gian" : `Tiền hoàn (Cashback) ${activeOption.label.toLowerCase()}`}
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-              {cycleAverageRate}% hoàn
-            </span>
+            <div className="flex items-center gap-1.5">
+              {cycleOverflowCashback > 0 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                  Chạm trần
+                </span>
+              )}
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                {cycleAverageRate}% hoàn
+              </span>
+            </div>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-amber-400 block">
-            +{formatCurrencyVND(cycleTotalCashback)}
-          </span>
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <span className="text-2xl sm:text-3xl font-black text-amber-400">
+              +{formatCurrencyVND(cycleTotalCashback)}
+            </span>
+            {cycleOverflowCashback > 0 && (
+              <span className="text-xs text-slate-400 line-through">
+                +{formatCurrencyVND(cycleTheoreticalCashback)}
+              </span>
+            )}
+            {cycleOverflowCashback > 0 && (
+              <span className="text-xs text-rose-400 font-semibold">
+                (Vượt: {formatCurrencyVND(cycleOverflowCashback)})
+              </span>
+            )}
+          </div>
           <span className="text-[11px] text-emerald-400/90 font-medium block">
             Tỷ lệ sinh lời hoàn vốn: {cycleAverageRate}% trên tổng chi tiêu
           </span>
@@ -744,6 +778,7 @@ export default function TrackerPage() {
         }}
         editingTransaction={editingTx}
         onSuccess={loadData}
+        allTransactions={transactions}
       />
     </div>
   );

@@ -91,6 +91,8 @@ export interface CardSpendingSummary {
   cycleInfo: StatementCycleInfo;
   totalSpent: number;
   totalCashback: number;
+  actualCashback: number; // Tiền hoàn thực nhận (đã khống chế theo trần thẻ)
+  overflowCashback: number; // Số tiền hoàn vượt trần lý thuyết
   maxCashback: number;
   maxCashbackPerCategory?: number;
   cashbackPercentage: number;

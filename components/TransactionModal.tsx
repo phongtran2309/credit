@@ -19,6 +19,7 @@ interface TransactionModalProps {
   defaultMccName?: string;
   defaultAmount?: number;
   defaultCashbackRate?: number;
+  allTransactions?: Transaction[];
 }
 
 const QUICK_MCC_TAGS = [
@@ -42,6 +43,7 @@ export default function TransactionModal({
   defaultMccName,
   defaultAmount,
   defaultCashbackRate,
+  allTransactions,
 }: TransactionModalProps) {
   const [cards, setCards] = useState<CreditCard[]>([]);
   const [mounted, setMounted] = useState(false);
@@ -176,7 +178,7 @@ export default function TransactionModal({
 
     // Cycle tracking (excluding current transaction if editing so limits aren't double counted)
     const cycleInfo = calculateStatementCycle(selectedCard.statementDay, selectedCard.dueDay, new Date(date || new Date()));
-    const storedTxs = getStoredTransactions();
+    const storedTxs = allTransactions && allTransactions.length > 0 ? allTransactions : getStoredTransactions();
     const cycleTxs = storedTxs.filter((tx) =>
       tx.cardId === selectedCard.id &&
       isDateInCycle(tx.transactionDate, cycleInfo) &&
